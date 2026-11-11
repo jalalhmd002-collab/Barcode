@@ -5,14 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>مخزن الملابس | فرز وتخزين - تصميم أبو حازم</title>
   
-  <!-- خط Cairo والتنسيق العصري -->
+  <!-- خط Cairo -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
-  <!-- مكتبات الباركود والكاميرا ومكتبة التنسيق السريع -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Html5Qrcode Scanner -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
   <script>
@@ -39,30 +41,28 @@
   </script>
 
   <style>
-    /* فرض الأرقام الإنجليزية في كامل التطبيق */
+    /* فرض الأرقام الإنجليزية 1234567890 القياسية وتوحيد المظهر */
     * {
       font-variant-numeric: tabular-nums lining-nums;
       -webkit-font-feature-settings: "tnum" 1, "lnum" 1;
       font-feature-settings: "tnum" 1, "lnum" 1;
+      box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
-      user-select: none;
-    }
-    input, textarea, select {
-      user-select: text;
     }
 
     body {
       background: radial-gradient(circle at top right, #f8fafc, #edf2f7);
       color: #0f172a;
       min-height: 100vh;
+      font-family: 'Cairo', sans-serif;
     }
 
-    /* كروت زجاجية بنمط Glassmorphism وإطار علوي ملون أنيق */
+    /* كروت زجاجية بنمط Glassmorphism */
     .glass-card {
-      background: rgba(255, 255, 255, 0.94);
+      background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(226, 232, 240, 0.9);
+      border: 1px solid rgba(226, 232, 240, 0.95);
       position: relative;
       overflow: hidden;
     }
@@ -71,41 +71,33 @@
     .accent-top-brand::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 4px;
       background: linear-gradient(90deg, #2563eb, #6366f1);
     }
     .accent-top-emerald::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 4px;
       background: linear-gradient(90deg, #10b981, #059669);
     }
     .accent-top-amber::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 4px;
       background: linear-gradient(90deg, #f59e0b, #d97706);
     }
     .accent-top-indigo::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      top: 0; left: 0; right: 0;
       height: 4px;
       background: linear-gradient(90deg, #8b5cf6, #ec4899);
     }
 
-    /* توحيد مقاسات وأحجام مربعات النصوص والقوائم */
+    /* توحيد مقاسات وأحجام مربعات النصوص والقوائم بارتفاع 46px */
     .unified-field {
       height: 46px !important;
       padding: 0 14px !important;
@@ -126,17 +118,13 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
     }
 
-    /* منطقة قارئ الكاميرا */
-    #reader video {
-      object-fit: cover !important;
-      border-radius: 1rem;
-      width: 100% !important;
+    /* إخفاء شريط التمرير لمعرض الصور المصغر مع إبقاء التمرير سلساً */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
     }
-    #reader {
-      border: none !important;
-    }
-    #reader__scan_region {
-      background: transparent !important;
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     /* أنيميشن إشعار التوست */
@@ -148,15 +136,15 @@
       animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    /* أنماط طباعة الملصق الحراري 50x30 مم */
+    /* أنماط طباعة الملصق الحراري مقاس 50x30 مم */
     @media print {
       body * {
         visibility: hidden !important;
       }
-      #printArea, #printArea * {
+      #thermalLabelPrint, #thermalLabelPrint * {
         visibility: visible !important;
       }
-      #printArea {
+      #thermalLabelPrint {
         position: fixed !important;
         left: 0 !important;
         top: 0 !important;
@@ -165,15 +153,16 @@
         margin: 0 !important;
         padding: 1.5mm !important;
         display: flex !important;
-        flex-direction: column !important;
+        flex-direction: row !important;
         align-items: center !important;
         justify-content: space-between !important;
         background: white !important;
         box-sizing: border-box !important;
+        border: none !important;
       }
-      #printArea svg {
-        max-width: 100% !important;
-        height: 14mm !important;
+      #thermalQrContainer img {
+        width: 25mm !important;
+        height: 25mm !important;
       }
     }
   </style>
@@ -181,27 +170,35 @@
 <body class="font-sans antialiased text-slate-800 pb-20">
 
   <!-- الترويسة الرئيسية -->
-  <header class="sticky top-0 z-40 glass-card border-b border-slate-200/80 px-4 py-3.5 shadow-sm accent-top-brand">
+  <header class="sticky top-0 z-40 glass-card border-b border-slate-200/80 px-4 py-3 shadow-sm accent-top-brand">
     <div class="max-w-md mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
           </svg>
         </div>
         <div>
-          <h1 class="text-base font-extrabold text-slate-900 leading-tight">مخزن الملابس | فرز وتخزين</h1>
-          <p class="text-xs font-semibold text-brand-600">فكرة وتصميم أبو حازم</p>
+          <h1 class="text-sm font-black text-slate-900 leading-tight">مخزن الملابس | فرز وتخزين</h1>
+          <p class="text-[11px] font-bold text-brand-600">تصميم فكرة وتصميم أبو حازم</p>
         </div>
       </div>
-      <div class="bg-emerald-50 border border-emerald-200/60 rounded-xl px-3 py-1.5 text-center">
-        <span class="block text-[10px] font-bold text-emerald-600">بالمخزن</span>
-        <span id="headerStockCount" class="text-sm font-black text-emerald-700">0</span>
+      
+      <!-- إحصائيات المخزن اللحظية -->
+      <div class="flex items-center gap-1.5">
+        <div class="bg-emerald-50 border border-emerald-200/80 rounded-xl px-2.5 py-1 text-center">
+          <span class="block text-[9px] font-bold text-emerald-600">بالمخزن</span>
+          <span id="stockCountBadge" class="text-xs font-black text-emerald-700">0</span>
+        </div>
+        <div class="bg-amber-50 border border-amber-200/80 rounded-xl px-2.5 py-1 text-center">
+          <span class="block text-[9px] font-bold text-amber-600">صادر</span>
+          <span id="dispatchedCountBadge" class="text-xs font-black text-amber-700">0</span>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- شريط التنقل بين التبويبات -->
+  <!-- شريط الملاحة السريع للتبويبات -->
   <div class="max-w-md mx-auto px-4 mt-3">
     <div class="grid grid-cols-4 gap-1 p-1 bg-slate-200/70 rounded-2xl">
       <button onclick="switchTab('scan')" id="tab-scan" class="tab-btn py-2 text-xs font-bold rounded-xl transition-all duration-200 bg-white text-brand-700 shadow-sm">
@@ -214,61 +211,38 @@
         المخزون
       </button>
       <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn py-2 text-xs font-bold rounded-xl transition-all duration-200 text-slate-600 hover:text-slate-900">
-        البيانات
+        النسخ
       </button>
     </div>
   </div>
 
-  <!-- المحتوى الرئيسي -->
+  <!-- المحتوى الرئيسي للمشروع -->
   <main class="max-w-md mx-auto px-4 mt-4">
 
-    <!-- 1. شاشة المسح والتجهيز -->
+    <!-- 1. شاشة المسح والتجهيز (QR بالكاميرا ومسدس الباركود وعارض الصور الـ 5) -->
     <section id="view-scan" class="space-y-4">
-      
-      <!-- نافذة الكاميرا وحقل القارئ الخارجي -->
       <div class="glass-card accent-top-brand rounded-2xl p-4 shadow-sm">
         
-        <!-- أزرار اختيار وضع المسح -->
+        <!-- أزرار أوضاع المسح السريع -->
         <div class="flex gap-2 mb-3">
-          <button id="camToggleBtn" onclick="toggleCamera()" class="flex-1 flex items-center justify-center gap-2 h-[46px] rounded-xl bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/25 active:scale-95 transition-transform">
+          <button id="camToggleBtn" onclick="toggleQrCamera()" class="flex-1 flex items-center justify-center gap-2 h-[46px] rounded-xl bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/25 active:scale-95 transition-transform">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
-            <span id="camBtnText">فتح الكاميرا للمسح</span>
+            <span id="camBtnText">مسح الكاميرا (QR)</span>
           </button>
           
-          <button onclick="focusExternalScanner()" class="px-3 h-[46px] rounded-xl border border-slate-300 text-slate-700 bg-white font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all">
+          <button onclick="focusExternalScanner()" class="px-3.5 h-[46px] rounded-xl border border-slate-300 text-slate-700 bg-white font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all">
             مسدس الباركود
           </button>
         </div>
 
-        <!-- صندوق الكاميرا التفاعلي -->
-        <div id="cameraBox" class="hidden relative overflow-hidden rounded-2xl bg-black mb-3 aspect-[4/3] flex items-center justify-center">
-          <div id="reader" class="w-full h-full"></div>
-          <div class="absolute inset-0 pointer-events-none border-2 border-dashed border-emerald-400/80 m-8 rounded-xl flex items-center justify-center">
-            <div class="w-full h-0.5 bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></div>
-          </div>
-        </div>
-
-        <!-- دليل إرشادي مرئي خطوة بخطوة لحل إذن الكاميرا نهائياً -->
-        <div id="camGuideBox" class="hidden mb-3 p-3.5 rounded-2xl bg-amber-50/90 border border-amber-300/80 text-amber-900 text-xs">
-          <div class="flex items-center gap-2 mb-2 font-black text-amber-800">
-            <span class="text-base">🔓</span>
-            <span>طريقة تفعيل إذن الكاميرا على الهاتف في 3 خطوات:</span>
-          </div>
-          <ol class="space-y-1.5 list-decimal list-inside font-bold text-[11px] leading-relaxed text-amber-950">
-            <li>اضغط على <strong>رمز القفل 🔒 أو خيارات الموقع ⚙️</strong> بجانب رابط الموقع بأعلى المتصفح.</li>
-            <li>اختر <strong>الأذونات (Permissions)</strong> ثم ابحث عن <strong>الكاميرا (Camera)</strong>.</li>
-            <li>قم بتغيير الخيار إلى <strong>السماح (Allow)</strong> ثم حدّث الصفحة وستفتح مباشرة.</li>
-          </ol>
-          <div class="mt-2.5 pt-2 border-t border-amber-200/80 flex justify-between items-center">
-            <button onclick="requestCameraDirectly()" class="px-3 py-1 bg-amber-700 text-white rounded-lg font-bold text-[10px] active:scale-95">
-              إعادة طلب الإذن الآن
-            </button>
-            <button onclick="document.getElementById('camGuideBox').classList.add('hidden')" class="text-[10px] font-bold text-amber-700 underline">
-              إخفاء الدليل
-            </button>
+        <!-- منطقة عدسة الكاميرا لمسح QR Code -->
+        <div id="cameraBox" class="hidden relative overflow-hidden rounded-2xl bg-black mb-3 aspect-square flex items-center justify-center shadow-inner">
+          <div id="qrReaderElement" class="w-full h-full"></div>
+          <div class="absolute inset-0 pointer-events-none m-10 border-2 border-emerald-400/90 rounded-2xl flex items-center justify-center shadow-[0_0_15px_rgba(52,211,153,0.3)]">
+            <div class="w-full h-0.5 bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse"></div>
           </div>
         </div>
 
@@ -277,27 +251,41 @@
           <input 
             type="text" 
             id="scannerInput" 
-            placeholder="امسح بالباركود أو اكتب الكود ثم اضغط Enter"
+            placeholder="امسح الـ QR أو اكتب الكود واضغط Enter"
             autocomplete="off"
-            autofocus
             class="unified-field pr-10 pl-16 shadow-inner"
           />
-          <div class="absolute right-3.5 top-3.5 text-slate-400">
+          <div class="absolute right-3.5 top-3.5 text-slate-400 pointer-events-none">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
             </svg>
           </div>
-          <button onclick="handleManualSearch()" class="absolute left-1.5 top-1.5 bottom-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors">
+          <button onclick="handleManualSearch()" class="absolute left-1.5 top-1.5 bottom-1.5 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors">
             بحث
           </button>
         </div>
       </div>
 
-      <!-- بطاقة نتيجة الصنف المفحوص مع إطار علوي ديناميكي -->
-      <div id="scanResultCard" class="hidden glass-card accent-top-emerald rounded-2xl p-4 shadow-sm">
+      <!-- بطاقة نتيجة مسح الصنف الفورية مع عارض الصور الخمس وسلايدر المعاينة -->
+      <div id="scanResultCard" class="hidden glass-card accent-top-emerald rounded-2xl p-4 shadow-sm transition-all duration-300">
+        
+        <!-- معرض الصور الخمس المصغرة للقطعة المطابقة -->
+        <div id="scannedImagesSliderBox" class="mb-3 hidden">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[10px] font-bold text-slate-500">صور القطعة للمطابقة بالعين (انقر لتكبير الصورة):</span>
+            <span id="scannedImagesCount" class="text-[10px] font-mono font-bold text-brand-600 bg-brand-50 px-1.5 py-0.2 rounded">0/5</span>
+          </div>
+          <div id="scannedThumbnails" class="flex gap-2 overflow-x-auto py-1 no-scrollbar">
+            <!-- تُولد الصور هنا بالـ JS -->
+          </div>
+        </div>
+
         <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
-            <span id="scannedSku" class="text-xs font-mono font-extrabold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-md">CLO-000000</span>
+            <div class="flex items-center gap-1.5">
+              <span id="scannedSku" class="text-xs font-mono font-black text-brand-600 bg-brand-50 px-2 py-0.5 rounded-md">MEN-000000</span>
+              <span id="scannedCat" class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">رجال</span>
+            </div>
             <h2 id="scannedTitle" class="text-base font-extrabold text-slate-900 mt-1">-</h2>
           </div>
           <span id="scannedStatusBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">بالمخزن</span>
@@ -306,14 +294,14 @@
         <div class="grid grid-cols-4 gap-1.5 my-3 text-center">
           <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl">
             <span class="text-[9px] text-slate-400 font-bold block">موقع الرف</span>
-            <span id="scannedLoc" class="text-xs font-black text-slate-800">A1-L2</span>
+            <span id="scannedLoc" class="text-xs font-black text-slate-800">A1-ط2</span>
           </div>
           <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl">
             <span class="text-[9px] text-slate-400 font-bold block">المقاس</span>
             <span id="scannedSize" class="text-xs font-black text-slate-800">L</span>
           </div>
           <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl">
-            <span class="text-[9px] text-slate-400 font-bold block">القماش</span>
+            <span class="text-[9px] text-slate-400 font-bold block">نوع القماش</span>
             <span id="scannedFabric" class="text-xs font-black text-indigo-700 truncate block">قطن</span>
           </div>
           <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl">
@@ -326,31 +314,31 @@
           <button id="toggleStatusBtn" onclick="toggleCurrentItemStatus()" class="flex-1 h-[46px] rounded-xl font-bold text-xs text-white bg-brand-600 hover:bg-brand-700 shadow-md transition-all active:scale-95 flex items-center justify-center">
             تجهيز القطعة وصرفها للطلب
           </button>
-          <button onclick="openEditModal(currentItem)" class="w-[46px] h-[46px] flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition-all border border-amber-200" title="تعديل البيانات">
+          <button onclick="openEditModal(currentItem)" class="w-[46px] h-[46px] flex items-center justify-center bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition-all border border-amber-200" title="تعديل بيانات القطعة">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
             </svg>
           </button>
-          <button onclick="printSingleItemFromScan()" class="w-[46px] h-[46px] flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all" title="طباعة الملصق">
+          <button onclick="printSingleItemFromScan()" class="w-[46px] h-[46px] flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all" title="طباعة ملصق QR">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
             </svg>
           </button>
         </div>
       </div>
-
     </section>
 
-    <!-- 2. شاشة إدخال وفرز جديد -->
+    <!-- 2. شاشة فرز جديد وتوليد QR Code والتقاط 5 صور مضغوطة -->
     <section id="view-add" class="hidden space-y-4">
       <div class="glass-card accent-top-indigo rounded-2xl p-5 shadow-sm">
-        <h2 class="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+        <h2 class="text-sm font-extrabold text-slate-900 mb-3 flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
-          بيانات القطعة المفروزة ونوع القماش
+          فرز قطعة جديدة والتقاط الصور وإنشاء الـ QR
         </h2>
 
         <form id="addItemForm" onsubmit="handleItemSave(event)" class="space-y-3.5">
-          <!-- اختيار فئة الصنف -->
+          
+          <!-- اختيار الفئة (لتوليد البادئة الخاصة بالكود) -->
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">فئة الصنف:</label>
             <div class="grid grid-cols-4 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
@@ -367,10 +355,9 @@
                 عام
               </button>
             </div>
-            <input type="hidden" id="formCategory" value="MEN">
           </div>
 
-          <!-- كود الصنف التلقائي -->
+          <!-- كود الصنف التلقائي SKU المعتمد على الفئة -->
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">كود القطعة التلقائي (SKU):</label>
             <div class="flex gap-2">
@@ -381,13 +368,38 @@
             </div>
           </div>
 
+          <!-- ميزة التقاط حتى 5 صور للقطعة مع الضغط التلقائي -->
+          <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+            <div class="flex justify-between items-center mb-2">
+              <label class="text-xs font-bold text-slate-700">التقاط حتى 5 صور للقطعة (بالكاميرا أو الملفات):</label>
+              <span id="formImagesCount" class="text-[10px] font-mono font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded">0/5</span>
+            </div>
+
+            <!-- زر إضافة الصور والمعاينة المصغرة -->
+            <div class="flex flex-wrap gap-2 items-center">
+              <div id="imageThumbnailsContainer" class="flex flex-wrap gap-2">
+                <!-- تُعرض الصور المصغرة مع زر حذف (X) هنا -->
+              </div>
+
+              <label id="uploadImageBtnLabel" class="w-16 h-16 rounded-xl border-2 border-dashed border-brand-300 bg-white hover:bg-brand-50 text-brand-600 flex flex-col items-center justify-center cursor-pointer transition-colors shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span class="text-[9px] font-bold mt-0.5">إضافة</span>
+                <input type="file" accept="image/*" capture="environment" id="cameraFileInput" onchange="handleImageSelection(event)" class="hidden">
+              </label>
+            </div>
+            <p class="text-[10px] text-slate-400 font-medium mt-1.5">يتم ضغط الصور تلقائياً لتسريع النظام وعدم إشغال ذاكرة الهاتف.</p>
+          </div>
+
           <!-- نوع القطعة / الوصف -->
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">نوع القطعة / الوصف:</label>
-            <input type="text" id="formName" placeholder="مثال: جاكيت جينز، هودي، بنطال شتوي" required class="unified-field">
+            <input type="text" id="formName" placeholder="مثال: جاكيت جينز، هودي شتوي، فستان" required class="unified-field">
           </div>
 
-          <!-- نوع القماش والمقاس بنفس الحجم المنسق -->
+          <!-- نوع القماش والمقاس بنفس الارتفاع الموحد -->
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">نوع القماش:</label>
@@ -398,8 +410,8 @@
                 <option value="كتان">كتان</option>
                 <option value="بوليستر">بوليستر</option>
                 <option value="حرير/ساتان">حرير / ساتان</option>
-                <option value="جلد">جلد / جلد صناعي</option>
-                <option value="مخلوط">خامة مختلطة</option>
+                <option value="جلد">جلد طبيعي/صناعي</option>
+                <option value="مخلوط">خامة مخلوطة</option>
                 <option value="أخرى">أخرى</option>
               </select>
             </div>
@@ -414,16 +426,16 @@
                 <option value="2XL">2XL</option>
                 <option value="3XL">3XL</option>
                 <option value="أطفال">أطفال</option>
-                <option value="Free Size">Free Size</option>
+                <option value="قياس موحد">قياس موحد (Free)</option>
               </select>
             </div>
           </div>
 
-          <!-- رقم الرف والطبقة في خانتين مستقلتين بنفس الارتفاع -->
+          <!-- موقع الرف والطبقة في خانتين مستقلتين -->
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">رقم/كود الرف:</label>
-              <input type="text" id="formRack" placeholder="مثلاً: A1 أو R-02" required class="unified-field uppercase">
+              <input type="text" id="formRack" placeholder="مثلاً: A1 أو R-05" required class="unified-field uppercase">
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">رقم الطبقة/المستوى:</label>
@@ -431,37 +443,36 @@
             </div>
           </div>
 
-          <!-- السعر المقترح -->
+          <!-- سعر البيع المقترح -->
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">سعر البيع المقترح:</label>
             <input type="number" id="formPrice" placeholder="0" min="1" step="1" required class="unified-field">
           </div>
 
           <div class="pt-2">
-            <button type="submit" class="w-full h-[48px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-md shadow-emerald-600/25 active:scale-95 transition-all flex items-center justify-center gap-2">
+            <button type="submit" class="w-full h-[48px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/25 active:scale-95 transition-all flex items-center justify-center gap-2">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
-              <span>حفظ القطعة وتوليد ملصق الباركود</span>
+              <span>حفظ وتوليد ملصق QR Code للطباعة</span>
             </button>
           </div>
         </form>
       </div>
     </section>
 
-    <!-- 3. شاشة إدارة المخزون -->
+    <!-- 3. شاشة إدارة المخزون والتعديل والبحث -->
     <section id="view-inventory" class="hidden space-y-3">
-      <!-- شريط البحث والفلترة الموحد -->
       <div class="glass-card accent-top-amber rounded-2xl p-3 shadow-sm flex flex-col gap-2">
         <div class="relative">
           <input 
             type="text" 
             id="invSearch" 
             oninput="filterInventory()" 
-            placeholder="بحث بالاسم، الباركود، القماش أو الرف..." 
+            placeholder="بحث بالاسم، كود QR، القماش أو الرف..." 
             class="unified-field pr-9 pl-3 text-xs"
           >
-          <svg class="w-4 h-4 absolute right-3 top-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 absolute right-3 top-3.5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
           </svg>
         </div>
@@ -474,10 +485,8 @@
         </div>
       </div>
 
-      <!-- قائمة البطاقات -->
-      <div id="inventoryList" class="space-y-2">
-        <!-- تُملأ بواسطة JavaScript مع أشرطة علوية ملونة لكل كرت -->
-      </div>
+      <!-- قائمة كروت المخزون التفاعلية -->
+      <div id="inventoryList" class="space-y-2"></div>
     </section>
 
     <!-- 4. شاشة البيانات والنسخ الاحتياطي -->
@@ -486,30 +495,30 @@
         <div>
           <h3 class="text-sm font-extrabold text-slate-900">النسخ الاحتياطي والمزامنة</h3>
           <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-            يمكنك حفظ قاعدة بيانات الملابس والأرفف كاملة في ملف خارجي، أو استعادتها على أي هاتف أو كمبيوتر آخر دون فقدان أي قطعة.
+            البيانات والصور تُخزن محلياً بالكامل عبر IndexedDB في هاتفك. يمكنك تصدير نسخة احتياطية بصيغة JSON واسترجاعها في أي وقت دون إنترنت.
           </p>
         </div>
 
-        <div class="flex flex-col gap-2 pt-2">
-          <button onclick="exportDataBackup()" class="w-full h-[48px] bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2">
+        <div class="flex flex-col gap-2.5 pt-2">
+          <button onclick="exportDataBackup()" class="w-full h-[48px] bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-black shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
-            تصدير نسخة احتياطية (JSON)
+            تصدير نسخة احتياطية مع الصور (JSON)
           </button>
 
-          <label class="w-full h-[48px] bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-extrabold text-center cursor-pointer border border-slate-200 transition-colors flex items-center justify-center gap-2">
+          <label class="w-full h-[48px] bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-black text-center cursor-pointer border border-slate-200 transition-colors flex items-center justify-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
             </svg>
-            استيراد بيانات من ملف
+            استيراد نسخة احتياطية
             <input type="file" id="importFileInput" accept=".json" onchange="importDataBackup(event)" class="hidden">
           </label>
         </div>
 
         <div class="border-t border-slate-100 pt-4">
-          <button onclick="clearAllDataPrompt()" class="w-full h-[44px] bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors">
-            تفريغ جميع البيانات (إعادة ضبط المصنع)
+          <button onclick="openConfirmModal('مسح كامل البيانات', 'هل أنت متأكد من تفريغ كافة بيانات المخزن والصور نهائياً؟', clearAllDataConfirmed)" class="w-full h-[44px] bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors">
+            تفريغ كافة البيانات (إعادة ضبط المصنع)
           </button>
         </div>
       </div>
@@ -517,31 +526,35 @@
 
   </main>
 
-  <!-- نافذة المعاينة والطباعة المخصصة للملصق الحراري 50x30 مم -->
+  <!-- نافذة المعاينة والطباعة لملصق QR الحراري 50x30 مم -->
   <div id="printModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-xs w-full p-5 shadow-2xl space-y-4">
       <div class="text-center">
-        <h3 class="text-sm font-extrabold text-slate-900">معاينة ملصق الباركود</h3>
-        <p class="text-[11px] text-slate-400 font-bold mt-0.5">مقاس مخصص 50x30 ملم (طابعات حرارية)</p>
+        <h3 class="text-sm font-extrabold text-slate-900">ملصق QR المخصص للطباعة</h3>
+        <p class="text-[11px] text-slate-400 font-bold mt-0.5">مقاس 50x30 ملم (طابعات الملصقات الحرارية)</p>
       </div>
 
-      <!-- الملصق الفعلي المراد طباعته متضمناً نوع القماش والموقع -->
       <div class="flex justify-center">
-        <div id="printArea" class="border-2 border-dashed border-slate-300 p-2 rounded-xl flex flex-col items-center justify-between text-center bg-white" style="width: 210px; height: 125px;">
-          <div id="prTitle" class="text-xs font-black text-slate-900 truncate w-full">جاكيت صوف</div>
-          <svg id="barcodeSvg" class="my-auto"></svg>
-          <div id="prMeta" class="text-[9px] font-bold text-slate-700 w-full flex justify-between px-1">
-            <span id="prLoc">الرف: A1-ط2</span>
-            <span id="prFabric">قماش: قطن</span>
-            <span id="prSize">مقاس: L</span>
-            <span id="prPrice">السعر: 50</span>
+        <div id="thermalLabelPrint" class="border-2 border-dashed border-slate-300 p-2 rounded-xl flex items-center justify-between bg-white text-right" style="width: 220px; height: 130px;">
+          <div class="flex-1 pr-1 flex flex-col justify-between h-full py-1">
+            <div>
+              <div id="prTitle" class="text-xs font-black text-slate-900 truncate">جاكيت صوف</div>
+              <div id="prSkuText" class="text-[10px] font-mono font-bold text-slate-600">MEN-102934</div>
+            </div>
+            <div class="text-[9px] font-bold text-slate-700 space-y-0.5">
+              <div id="prLoc">الرف: A1 (ط2)</div>
+              <div id="prFabric">قماش: قطن</div>
+              <div id="prSize">مقاس: L</div>
+              <div id="prPrice" class="text-[11px] font-black text-slate-900">50</div>
+            </div>
           </div>
+          <div id="thermalQrContainer" class="flex-shrink-0 flex items-center justify-center p-1 bg-white"></div>
         </div>
       </div>
 
       <div class="flex gap-2">
         <button onclick="triggerPrintNow()" class="flex-1 h-[44px] bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/25 active:scale-95 transition-all">
-          طباعة الملصق
+          طباعة الآن
         </button>
         <button onclick="closePrintModal()" class="h-[44px] px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
           إغلاق
@@ -550,9 +563,22 @@
     </div>
   </div>
 
-  <!-- نافذة تعديل بيانات الصنف (Edit Modal) لتصحيح أي أخطاء -->
+  <!-- نافذة تكبير وفحص الصورة بكامل الحجم للمعاينة البصرية الدقيقة -->
+  <div id="imageLightboxModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4" onclick="closeLightboxModal()">
+    <div class="relative max-w-sm w-full bg-transparent flex flex-col items-center" onclick="event.stopPropagation()">
+      <button onclick="closeLightboxModal()" class="self-end mb-2 p-2 text-white bg-white/20 hover:bg-white/30 rounded-full transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <img id="lightboxImage" src="" alt="صورة مكبرة للقطعة" class="w-full max-h-[75vh] object-contain rounded-2xl shadow-2xl bg-black">
+      <p id="lightboxCaption" class="text-xs text-white/90 font-bold mt-3 text-center"></p>
+    </div>
+  </div>
+
+  <!-- نافذة تعديل بيانات الصنف (Edit Custom Modal) -->
   <div id="editModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-100 pb-2">
         <div>
           <h3 class="text-sm font-extrabold text-slate-900">تعديل بيانات القطعة</h3>
@@ -580,7 +606,7 @@
               <option value="بوليستر">بوليستر</option>
               <option value="حرير/ساتان">حرير / ساتان</option>
               <option value="جلد">جلد / صناعي</option>
-              <option value="مخلوط">خامة مختلطة</option>
+              <option value="مخلوط">خامة مخلوطة</option>
               <option value="أخرى">أخرى</option>
             </select>
           </div>
@@ -595,7 +621,7 @@
               <option value="2XL">2XL</option>
               <option value="3XL">3XL</option>
               <option value="أطفال">أطفال</option>
-              <option value="Free Size">Free Size</option>
+              <option value="قياس موحد">قياس موحد (Free)</option>
             </select>
           </div>
         </div>
@@ -628,16 +654,33 @@
     </div>
   </div>
 
-  <!-- حاوية التوست للإشعارات الفورية بدون Alert -->
+  <!-- نافذة مخصصة لتأكيد الإجراءات (Custom Confirmation Modal) -->
+  <div id="confirmModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xs w-full p-5 shadow-2xl space-y-3 text-center">
+      <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center font-bold text-lg">!</div>
+      <h3 id="confirmTitle" class="text-sm font-extrabold text-slate-900">تأكيد الإجراء</h3>
+      <p id="confirmDesc" class="text-xs text-slate-500 leading-relaxed">هل أنت متأكد من تنفيذ هذا الإجراء؟</p>
+      <div class="flex gap-2 pt-2">
+        <button id="confirmOkBtn" class="flex-1 h-[42px] bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm active:scale-95 transition-all">
+          نعم، استمرار
+        </button>
+        <button onclick="closeConfirmModal()" class="flex-1 h-[42px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
+          إلغاء
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- حاوية إشعارات التوست السريعة -->
   <div id="toastContainer" class="fixed bottom-4 left-4 right-4 z-50 pointer-events-none flex flex-col items-center gap-2"></div>
 
-  <!-- سكربت المنطق البرمجي -->
+  <!-- المنطق البرمجي الكامل للنظام -->
   <script>
     // -------------------------------------------------------------
     // 1. قاعدة البيانات المحلية (IndexedDB)
     // -------------------------------------------------------------
     let db;
-    const DB_NAME = "ClothesWarehouseDB_v2";
+    const DB_NAME = "ClothesWarehouseQR_DB_V2";
     const DB_VERSION = 1;
 
     function initDatabase() {
@@ -648,12 +691,12 @@
           if (!db.objectStoreNames.contains("clothes")) {
             const store = db.createObjectStore("clothes", { keyPath: "sku" });
             store.createIndex("status", "status", { unique: false });
-            store.createIndex("loc", "loc", { unique: false });
+            store.createIndex("category", "category", { unique: false });
           }
         };
         req.onsuccess = (e) => {
           db = e.target.result;
-          updateStockCount();
+          updateDashboardCounters();
           loadInventory();
           resolve(db);
         };
@@ -662,7 +705,7 @@
     }
 
     // -------------------------------------------------------------
-    // 2. نظام التنبيهات الصوتية (Web Audio API)
+    // 2. نظام التنبيهات الصوتية المدمجة (Web Audio API)
     // -------------------------------------------------------------
     let audioCtx = null;
     function getAudioContext() {
@@ -685,37 +728,37 @@
 
         if (type === 'success') {
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(800, ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+          osc.frequency.setValueAtTime(850, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1250, ctx.currentTime + 0.1);
           gain.gain.setValueAtTime(0.15, ctx.currentTime);
           gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.12);
           osc.start();
           osc.stop(ctx.currentTime + 0.12);
         } else {
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(240, ctx.currentTime);
-          osc.frequency.linearRampToValueAtTime(160, ctx.currentTime + 0.25);
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(260, ctx.currentTime);
+          osc.frequency.linearRampToValueAtTime(140, ctx.currentTime + 0.22);
           gain.gain.setValueAtTime(0.2, ctx.currentTime);
-          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.22);
           osc.start();
-          osc.stop(ctx.currentTime + 0.25);
+          osc.stop(ctx.currentTime + 0.22);
         }
-      } catch (e) {
-        console.warn("Audio warning:", e);
+      } catch (err) {
+        console.warn("Audio warning:", err);
       }
     }
 
     // -------------------------------------------------------------
-    // 3. نظام التوست (Custom Toast) بديل الـ Alert
+    // 3. نظام الإشعارات المنبثقة التفاعلية (Toasts)
     // -------------------------------------------------------------
     function showToast(message, type = 'info') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');
       
       const colors = {
-        success: 'bg-emerald-600 text-white shadow-emerald-500/20',
-        error: 'bg-rose-600 text-white shadow-rose-500/20',
-        info: 'bg-slate-900 text-white shadow-slate-900/20',
+        success: 'bg-emerald-600 text-white shadow-emerald-500/25',
+        error: 'bg-rose-600 text-white shadow-rose-500/25',
+        info: 'bg-slate-900 text-white shadow-slate-900/25',
       };
 
       toast.className = `toast-anim pointer-events-auto px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg flex items-center gap-2 ${colors[type] || colors.info}`;
@@ -730,7 +773,100 @@
     }
 
     // -------------------------------------------------------------
-    // 4. إدارة التبويبات
+    // 4. ميزة ضغط الصور التلقائي والتقاط حتى 5 صور
+    // -------------------------------------------------------------
+    let currentUploadedImages = []; // مصفوفة لتخزين الـ Base64 المضغوطة للقطعة الحالية
+
+    function handleImageSelection(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (currentUploadedImages.length >= 5) {
+        showToast("الحد الأقصى هو 5 صور لكل قطعة", "error");
+        event.target.value = '';
+        return;
+      }
+
+      showToast("جاري معالجة وضغط الصورة...", "info");
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          // ضغط الصورة وتصغير أبعادها إلى حد أقصى 600px لضمان سرعة فائقة وحجم قليل
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 600;
+
+          if (width > height && width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // تصدير كـ JPEG مضغوط بجودة 0.72
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.72);
+          currentUploadedImages.push(compressedDataUrl);
+          updateImageThumbnailsUI();
+          event.target.value = '';
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeUploadedImage(index) {
+      currentUploadedImages.splice(index, 1);
+      updateImageThumbnailsUI();
+    }
+
+    function updateImageThumbnailsUI() {
+      const container = document.getElementById('imageThumbnailsContainer');
+      const countBadge = document.getElementById('formImagesCount');
+      const addBtnLabel = document.getElementById('uploadImageBtnLabel');
+
+      countBadge.textContent = `${currentUploadedImages.length}/5`;
+      container.innerHTML = '';
+
+      currentUploadedImages.forEach((src, idx) => {
+        const thumb = document.createElement('div');
+        thumb.className = "relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200 shadow-sm group";
+        thumb.innerHTML = `
+          <img src="${src}" class="w-full h-full object-cover cursor-pointer" onclick="openLightboxModal('${src}', 'صورة القطعة (${idx + 1})')">
+          <button type="button" onclick="removeUploadedImage(${idx})" class="absolute top-0.5 right-0.5 w-5 h-5 bg-rose-600/90 text-white rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm hover:bg-rose-700 transition-colors">
+            ✕
+          </button>
+        `;
+        container.appendChild(thumb);
+      });
+
+      if (currentUploadedImages.length >= 5) {
+        addBtnLabel.classList.add('hidden');
+      } else {
+        addBtnLabel.classList.remove('hidden');
+      }
+    }
+
+    function openLightboxModal(src, caption) {
+      document.getElementById('lightboxImage').src = src;
+      document.getElementById('lightboxCaption').textContent = caption || '';
+      document.getElementById('imageLightboxModal').classList.remove('hidden');
+    }
+
+    function closeLightboxModal() {
+      document.getElementById('imageLightboxModal').classList.add('hidden');
+    }
+
+    // -------------------------------------------------------------
+    // 5. التبديل بين التبويبات
     // -------------------------------------------------------------
     function switchTab(tabId) {
       document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
@@ -748,7 +884,7 @@
       }
 
       if (tabId !== 'scan' && html5QrCode && isCameraActive) {
-        stopCamera();
+        stopQrCamera();
       }
 
       if (tabId === 'scan') {
@@ -761,111 +897,76 @@
     }
 
     // -------------------------------------------------------------
-    // 5. قارئ الكاميرا مع المعالجة الدقيقة للأذونات
+    // 6. قارئ الكاميرا المخصص للـ QR Code
     // -------------------------------------------------------------
     let html5QrCode = null;
     let isCameraActive = false;
 
-    async function requestCameraDirectly() {
-      try {
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-          // تحرير المسار فوراً بعد نيل الإذن
-          stream.getTracks().forEach(track => track.stop());
-          document.getElementById('camGuideBox').classList.add('hidden');
-          showToast("تم منح إذن الكاميرا بنجاح!", "success");
-          startCamera();
-        } else {
-          showToast("المتصفح لا يدعم الوصول للكاميرا", "error");
-        }
-      } catch (err) {
-        document.getElementById('camGuideBox').classList.remove('hidden');
-        showToast("يرجى تفعيل الإذن من إعدادات المتصفح كما بالدليل", "error");
-      }
-    }
-
-    async function toggleCamera() {
+    async function toggleQrCamera() {
       if (isCameraActive) {
-        stopCamera();
+        stopQrCamera();
       } else {
-        startCamera();
+        startQrCamera();
       }
     }
 
-    async function startCamera() {
+    async function startQrCamera() {
       const box = document.getElementById('cameraBox');
       const btnText = document.getElementById('camBtnText');
-      const guide = document.getElementById('camGuideBox');
 
       try {
-        // فحص الإذن أولاً
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            stream.getTracks().forEach(track => track.stop());
-          } catch (permErr) {
-            guide.classList.remove('hidden');
-            showToast("إذن الكاميرا مطلوب، اتبع الخطوات بالدليل أعلاه", "error");
-            return;
-          }
-        }
-
         box.classList.remove('hidden');
         if (!html5QrCode) {
-          html5QrCode = new Html5Qrcode("reader");
+          html5QrCode = new Html5Qrcode("qrReaderElement");
         }
 
         const config = {
           fps: 15,
-          qrbox: { width: 220, height: 140 },
-          aspectRatio: 1.333333
+          qrbox: { width: 220, height: 220 },
+          aspectRatio: 1.0,
+          formatsToSupport: [ Html5QrcodeSupportedFormats.QR_CODE ]
         };
 
         await html5QrCode.start(
           { facingMode: "environment" },
           config,
-          onScanSuccess,
-          onScanFailure
+          onQrScanSuccess,
+          (err) => {}
         );
 
         isCameraActive = true;
         btnText.textContent = "إيقاف الكاميرا";
-        guide.classList.add('hidden');
       } catch (err) {
-        console.error("Camera error:", err);
+        console.error("Camera start error:", err);
         box.classList.add('hidden');
         isCameraActive = false;
-        btnText.textContent = "فتح الكاميرا للمسح";
-        guide.classList.remove('hidden');
+        btnText.textContent = "مسح الكاميرا (QR)";
+        showToast("تأكد من منح إذن الكاميرا وفتح الرابط عبر HTTPS", "error");
         playBeep('error');
       }
     }
 
-    async function stopCamera() {
+    async function stopQrCamera() {
       if (html5QrCode && isCameraActive) {
         try {
           await html5QrCode.stop();
         } catch (e) {
-          console.warn("Stop camera warning:", e);
+          console.warn("Stop camera error:", e);
         }
         document.getElementById('cameraBox').classList.add('hidden');
-        document.getElementById('camBtnText').textContent = "فتح الكاميرا للمسح";
+        document.getElementById('camBtnText').textContent = "مسح الكاميرا (QR)";
         isCameraActive = false;
       }
     }
 
-    function onScanSuccess(decodedText) {
+    function onQrScanSuccess(decodedText) {
       playBeep('success');
-      processBarcode(decodedText);
-      stopCamera();
-    }
-
-    function onScanFailure(error) {
-      // محاولات قراءة مستمرة
+      processScannedCode(decodedText);
+      stopQrCamera();
     }
 
     // -------------------------------------------------------------
-    // 6. التعامل مع ماسح الباركود الخارجي والبحث
+    // 7. مسدس الباركود الخارجي والبحث المباشر
     // -------------------------------------------------------------
     const scannerInput = document.getElementById('scannerInput');
     scannerInput.addEventListener('keydown', (e) => {
@@ -873,27 +974,27 @@
         e.preventDefault();
         const code = scannerInput.value.trim();
         if (code) {
-          processBarcode(code);
+          processScannedCode(code);
           scannerInput.value = '';
         }
       }
     });
 
     function focusExternalScanner() {
-      showToast("حقل المسدس الخارجي جاهز للمسح الآن", "info");
+      showToast("جاهز لاستقبال قراءات مسدس الـ QR الخارجي", "info");
       setTimeout(() => scannerInput.focus(), 150);
     }
 
     function handleManualSearch() {
       const code = scannerInput.value.trim();
       if (code) {
-        processBarcode(code);
+        processScannedCode(code);
         scannerInput.value = '';
       }
     }
 
     let currentItem = null;
-    function processBarcode(code) {
+    function processScannedCode(code) {
       if (!db) return;
       const tx = db.transaction("clothes", "readonly");
       const store = tx.objectStore("clothes");
@@ -908,23 +1009,49 @@
           resultCard.classList.remove('hidden');
           
           document.getElementById('scannedSku').textContent = item.sku;
+          document.getElementById('scannedCat').textContent = getCategoryName(item.category);
           document.getElementById('scannedTitle').textContent = item.name;
           const locStr = item.rack && item.shelf ? `${item.rack}-ط${item.shelf}` : (item.loc || '-');
           document.getElementById('scannedLoc').textContent = locStr;
           document.getElementById('scannedSize').textContent = item.size;
           document.getElementById('scannedFabric').textContent = item.fabric || 'قطن';
           document.getElementById('scannedPrice').textContent = `${item.price}`;
+
+          // عرض سلايدر الصور الخمس المصغرة للقطعة إن وجدت
+          const imagesBox = document.getElementById('scannedImagesSliderBox');
+          const thumbContainer = document.getElementById('scannedThumbnails');
+          const countLabel = document.getElementById('scannedImagesCount');
+          thumbContainer.innerHTML = '';
+
+          if (item.images && item.images.length > 0) {
+            imagesBox.classList.remove('hidden');
+            countLabel.textContent = `${item.images.length}/5`;
+            item.images.forEach((src, idx) => {
+              const imgEl = document.createElement('img');
+              imgEl.src = src;
+              imgEl.className = "w-14 h-14 object-cover rounded-xl border border-slate-200 shadow-sm cursor-pointer hover:opacity-90 active:scale-95 transition-all flex-shrink-0";
+              imgEl.onclick = () => openLightboxModal(src, `${item.name} - صورة (${idx + 1})`);
+              thumbContainer.appendChild(imgEl);
+            });
+          } else {
+            imagesBox.classList.add('hidden');
+          }
           
-          updateStatusBadge(item.status);
+          updateScanStatusUI(item.status);
         } else {
           playBeep('error');
-          showToast(`الرمز ${code} غير مسجل بالمخزن`, "error");
+          showToast(`الرمز ${code} غير مسجل في المخزن`, "error");
           resultCard.classList.add('hidden');
         }
       };
     }
 
-    function updateStatusBadge(status) {
+    function getCategoryName(cat) {
+      const map = { 'MEN': 'رجال', 'WMN': 'ستاتي', 'KID': 'أطفال', 'UNI': 'عام' };
+      return map[cat] || 'عام';
+    }
+
+    function updateScanStatusUI(status) {
       const badge = document.getElementById('scannedStatusBadge');
       const actionBtn = document.getElementById('toggleStatusBtn');
       const card = document.getElementById('scanResultCard');
@@ -933,13 +1060,13 @@
         badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800";
         badge.textContent = "بالمخزن";
         actionBtn.className = "flex-1 h-[46px] rounded-xl font-bold text-xs text-white bg-brand-600 hover:bg-brand-700 shadow-md transition-all active:scale-95 flex items-center justify-center";
-        actionBtn.textContent = "تجهيز القطعة وصرفها للطلب";
+        actionBtn.textContent = "تجهيز وصرف القطعة للطلب والتوصيل";
         card.className = "glass-card accent-top-emerald rounded-2xl p-4 shadow-sm";
       } else {
         badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800";
         badge.textContent = "صادر للتوصيل";
         actionBtn.className = "flex-1 h-[46px] rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 shadow-md transition-all active:scale-95 flex items-center justify-center";
-        actionBtn.textContent = "إرجاع القطعة إلى الرف بالمخزن";
+        actionBtn.textContent = "إرجاع القطعة إلى الرف (مخزون متاح)";
         card.className = "glass-card accent-top-amber rounded-2xl p-4 shadow-sm";
       }
     }
@@ -952,22 +1079,20 @@
       tx.objectStore("clothes").put(currentItem);
       tx.oncomplete = () => {
         playBeep('success');
-        updateStatusBadge(currentItem.status);
-        updateStockCount();
+        updateScanStatusUI(currentItem.status);
+        updateDashboardCounters();
         loadInventory();
-        showToast(currentItem.status === 'in_stock' ? "تمت إعادة القطعة للمخزن" : "تم صرف القطعة للتجهيز", "info");
+        showToast(currentItem.status === 'in_stock' ? "تمت إعادة القطعة للمخزن" : "تم صرف القطعة للتوصيل", "info");
       };
     }
 
     // -------------------------------------------------------------
-    // 7. إدارة الفئات وتوليد الباركود الذكي
+    // 8. إدارة الفئات وتوليد رموز الـ QR وحفظ الصنف
     // -------------------------------------------------------------
     let currentCategory = 'MEN';
 
     function selectGenderCategory(cat) {
       currentCategory = cat;
-      document.getElementById('formCategory').value = cat;
-
       document.querySelectorAll('.cat-btn').forEach(btn => {
         btn.classList.remove('bg-white', 'text-brand-700', 'shadow-sm');
         btn.classList.add('text-slate-600');
@@ -983,7 +1108,7 @@
     }
 
     function generateNewSku() {
-      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
       const prefix = currentCategory || 'MEN';
       document.getElementById('formSku').value = `${prefix}-${randomNum}`;
     }
@@ -998,7 +1123,6 @@
       const shelf = document.getElementById('formShelf').value.trim().toUpperCase();
       const price = document.getElementById('formPrice').value.trim();
       const category = currentCategory;
-
       const fullLoc = `${rack}-L${shelf}`;
 
       const item = {
@@ -1012,6 +1136,7 @@
         price,
         category,
         status: 'in_stock',
+        images: [...currentUploadedImages], // حفظ الصور الـ 5 المضغوطة
         createdAt: new Date().toISOString()
       };
 
@@ -1020,21 +1145,64 @@
       tx.oncomplete = () => {
         playBeep('success');
         showToast("تم حفظ الصنف بنجاح", "success");
-        updateStockCount();
+        updateDashboardCounters();
         openPrintModal(item);
 
         document.getElementById('formName').value = '';
+        currentUploadedImages = [];
+        updateImageThumbnailsUI();
         generateNewSku();
       };
     }
 
     // -------------------------------------------------------------
-    // 8. تعديل بيانات الصنف (Edit Modal)
+    // 9. إنشاء وتوليد QR Code ومعاينة الطباعة الحرارية 50x30 مم
+    // -------------------------------------------------------------
+    function openPrintModal(item) {
+      const locStr = item.rack && item.shelf ? `الرف: ${item.rack} (ط${item.shelf})` : `الرف: ${item.loc}`;
+      document.getElementById('prTitle').textContent = item.name;
+      document.getElementById('prSkuText').textContent = item.sku;
+      document.getElementById('prLoc').textContent = locStr;
+      document.getElementById('prFabric').textContent = `قماش: ${item.fabric || 'قطن'}`;
+      document.getElementById('prSize').textContent = `مقاس: ${item.size}`;
+      document.getElementById('prPrice').textContent = `${item.price}`;
+
+      const qrContainer = document.getElementById('thermalQrContainer');
+      qrContainer.innerHTML = '';
+
+      new QRCode(qrContainer, {
+        text: item.sku,
+        width: 80,
+        height: 80,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.M
+      });
+
+      document.getElementById('printModal').classList.remove('hidden');
+    }
+
+    function printSingleItemFromScan() {
+      if (currentItem) {
+        openPrintModal(currentItem);
+      }
+    }
+
+    function triggerPrintNow() {
+      window.print();
+    }
+
+    function closePrintModal() {
+      document.getElementById('printModal').classList.add('hidden');
+    }
+
+    // -------------------------------------------------------------
+    // 10. تعديل بيانات الصنف (Edit Custom Modal)
     // -------------------------------------------------------------
     function openEditModal(item) {
       if (!item) return;
       document.getElementById('editItemSku').value = item.sku;
-      document.getElementById('editSkuDisplay').textContent = `${item.sku} (${item.category || 'عام'})`;
+      document.getElementById('editSkuDisplay').textContent = `${item.sku} (${getCategoryName(item.category)})`;
       document.getElementById('editItemName').value = item.name;
       document.getElementById('editItemFabric').value = item.fabric || 'قطن';
       document.getElementById('editItemSize').value = item.size;
@@ -1083,61 +1251,22 @@
         loadInventory();
 
         if (currentItem && currentItem.sku === sku) {
-          processBarcode(sku);
+          processScannedCode(sku);
         }
       };
     }
 
     // -------------------------------------------------------------
-    // 9. معاينة وطباعة ملصق الباركود الحراري (JsBarcode)
+    // 11. إدارة وعرض بطاقات المخزون مع الأشرطة العلوية الملونة والصور
     // -------------------------------------------------------------
-    function openPrintModal(item) {
-      const locStr = item.rack && item.shelf ? `الرف: ${item.rack} (ط${item.shelf})` : `الموقع: ${item.loc}`;
-      document.getElementById('prTitle').textContent = item.name;
-      document.getElementById('prLoc').textContent = locStr;
-      document.getElementById('prFabric').textContent = `قماش: ${item.fabric || 'قطن'}`;
-      document.getElementById('prSize').textContent = `مقاس: ${item.size}`;
-      document.getElementById('prPrice').textContent = `السعر: ${item.price}`;
-
-      JsBarcode("#barcodeSvg", item.sku, {
-        format: "CODE128",
-        lineColor: "#000",
-        width: 1.8,
-        height: 36,
-        displayValue: true,
-        fontSize: 12,
-        font: "Cairo",
-        textMargin: 2
-      });
-
-      document.getElementById('printModal').classList.remove('hidden');
-    }
-
-    function printSingleItemFromScan() {
-      if (currentItem) {
-        openPrintModal(currentItem);
-      }
-    }
-
-    function triggerPrintNow() {
-      window.print();
-    }
-
-    function closePrintModal() {
-      document.getElementById('printModal').classList.add('hidden');
-    }
-
-    // -------------------------------------------------------------
-    // 10. إدارة شاشة المخزون والفلترة
-    // -------------------------------------------------------------
-    let allItems = [];
+    let allInventoryItems = [];
     function loadInventory() {
       if (!db) return;
       const tx = db.transaction("clothes", "readonly");
       const store = tx.objectStore("clothes");
       const req = store.getAll();
       req.onsuccess = (e) => {
-        allItems = e.target.result || [];
+        allInventoryItems = e.target.result || [];
         filterInventory();
       };
     }
@@ -1146,7 +1275,7 @@
       const q = (document.getElementById('invSearch').value || '').trim().toLowerCase();
       const statusFilter = document.getElementById('invStatusFilter').value;
 
-      const filtered = allItems.filter(item => {
+      const filtered = allInventoryItems.filter(item => {
         const matchesQuery = 
           item.sku.toLowerCase().includes(q) ||
           item.name.toLowerCase().includes(q) ||
@@ -1187,18 +1316,26 @@
 
         const locText = item.rack && item.shelf ? `رف ${item.rack} (ط${item.shelf})` : item.loc;
 
+        // صورة مصغرة رئيسية إن وجدت
+        const mainImgThumb = (item.images && item.images.length > 0)
+          ? `<img src="${item.images[0]}" class="w-12 h-12 object-cover rounded-xl border border-slate-200 shadow-sm cursor-pointer flex-shrink-0" onclick="openLightboxModal('${item.images[0]}', '${item.name}')" title="عرض الصورة">`
+          : `<div class="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 text-xs font-bold flex-shrink-0">لا صورة</div>`;
+
         card.innerHTML = `
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="text-[11px] font-mono font-extrabold text-brand-600 bg-brand-50 px-1.5 py-0.2 rounded">${item.sku}</span>
-              ${statusBadge}
-            </div>
-            <h4 class="text-xs font-extrabold text-slate-800 truncate">${item.name}</h4>
-            <div class="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-slate-500 font-bold mt-1">
-              <span>المكان: <strong class="text-slate-700">${locText}</strong></span>
-              <span>القماش: <strong class="text-indigo-600">${item.fabric || 'قطن'}</strong></span>
-              <span>مقاس: <strong class="text-slate-700">${item.size}</strong></span>
-              <span>السعر: <strong class="text-emerald-600">${item.price}</strong></span>
+          <div class="flex items-center gap-2.5 flex-1 min-w-0">
+            ${mainImgThumb}
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 mb-1">
+                <span class="text-[11px] font-mono font-black text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded">${item.sku}</span>
+                ${statusBadge}
+              </div>
+              <h4 class="text-xs font-black text-slate-800 truncate">${item.name}</h4>
+              <div class="flex flex-wrap gap-x-2.5 gap-y-1 text-[11px] text-slate-500 font-bold mt-1">
+                <span>المكان: <strong class="text-slate-700">${locText}</strong></span>
+                <span>القماش: <strong class="text-indigo-600">${item.fabric || 'قطن'}</strong></span>
+                <span>مقاس: <strong class="text-slate-700">${item.size}</strong></span>
+                <span>السعر: <strong class="text-emerald-600">${item.price}</strong></span>
+              </div>
             </div>
           </div>
           <div class="flex items-center gap-1">
@@ -1207,12 +1344,12 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
             </button>
-            <button onclick='openPrintModal(${JSON.stringify(item)})' class="p-2 text-slate-500 hover:text-brand-600 rounded-lg hover:bg-slate-100 transition-colors" title="طباعة باركود">
+            <button onclick='openPrintModal(${JSON.stringify(item)})' class="p-2 text-slate-500 hover:text-brand-600 rounded-lg hover:bg-slate-100 transition-colors" title="طباعة QR">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
               </svg>
             </button>
-            <button onclick="deleteItemPrompt('${item.sku}')" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors" title="حذف">
+            <button onclick="promptDeleteItem('${item.sku}')" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors" title="حذف">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
               </svg>
@@ -1223,31 +1360,40 @@
       });
     }
 
-    function deleteItemPrompt(sku) {
-      const tx = db.transaction("clothes", "readwrite");
-      tx.objectStore("clothes").delete(sku);
-      tx.oncomplete = () => {
-        playBeep('success');
-        showToast(`تم حذف القطعة ${sku}`, "info");
-        updateStockCount();
-        loadInventory();
-      };
+    function promptDeleteItem(sku) {
+      openConfirmModal(
+        'حذف قطعة',
+        `هل أنت متأكد من حذف القطعة رقم ${sku} من سجلات المخزن؟`,
+        () => {
+          const tx = db.transaction("clothes", "readwrite");
+          tx.objectStore("clothes").delete(sku);
+          tx.oncomplete = () => {
+            playBeep('success');
+            showToast(`تم حذف القطعة ${sku}`, "info");
+            updateDashboardCounters();
+            loadInventory();
+          };
+        }
+      );
     }
 
-    function updateStockCount() {
+    function updateDashboardCounters() {
       if (!db) return;
       const tx = db.transaction("clothes", "readonly");
       const store = tx.objectStore("clothes");
       const req = store.getAll();
       req.onsuccess = (e) => {
         const items = e.target.result || [];
-        const inStock = items.filter(i => i.status === 'in_stock').length;
-        document.getElementById('headerStockCount').textContent = inStock;
+        const inStockCount = items.filter(i => i.status === 'in_stock').length;
+        const dispatchedCount = items.filter(i => i.status === 'dispatched').length;
+
+        document.getElementById('stockCountBadge').textContent = inStockCount;
+        document.getElementById('dispatchedCountBadge').textContent = dispatchedCount;
       };
     }
 
     // -------------------------------------------------------------
-    // 11. التصدير والاستيراد (Backup & Restore)
+    // 12. النسخ الاحتياطي (JSON) والاستيراد وإعادة الضبط
     // -------------------------------------------------------------
     function exportDataBackup() {
       if (!db) return;
@@ -1258,10 +1404,10 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `clothes_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.download = `clothes_warehouse_backup_${new Date().toISOString().slice(0,10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        showToast("تم تحميل ملف النسخة الاحتياطية", "success");
+        showToast("تم تنزيل النسخة الاحتياطية بنجاح", "success");
       };
     }
 
@@ -1273,7 +1419,7 @@
       reader.onload = (event) => {
         try {
           const items = JSON.parse(event.target.result);
-          if (!Array.isArray(items)) throw new Error("الملف غير صالح");
+          if (!Array.isArray(items)) throw new Error("ملف غير صالح");
 
           const tx = db.transaction("clothes", "readwrite");
           const store = tx.objectStore("clothes");
@@ -1281,7 +1427,7 @@
           tx.oncomplete = () => {
             playBeep('success');
             showToast(`تم استيراد ${items.length} قطعة بنجاح`, "success");
-            updateStockCount();
+            updateDashboardCounters();
             loadInventory();
             e.target.value = '';
           };
@@ -1293,18 +1439,39 @@
       reader.readAsText(file);
     }
 
-    function clearAllDataPrompt() {
+    function clearAllDataConfirmed() {
       const tx = db.transaction("clothes", "readwrite");
       tx.objectStore("clothes").clear();
       tx.oncomplete = () => {
         playBeep('info');
-        showToast("تم تفريغ كافة البيانات", "info");
-        updateStockCount();
+        showToast("تم تفريغ كافة البيانات من المخزن", "info");
+        updateDashboardCounters();
         loadInventory();
       };
     }
 
-    // تشغيل النظام فور تحميل الصفحة
+    // -------------------------------------------------------------
+    // 13. نافذة التأكيد المنبثقة المخصصة
+    // -------------------------------------------------------------
+    let confirmCallback = null;
+    function openConfirmModal(title, desc, callback) {
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmDesc').textContent = desc;
+      confirmCallback = callback;
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.add('hidden');
+      confirmCallback = null;
+    }
+
+    document.getElementById('confirmOkBtn').addEventListener('click', () => {
+      if (confirmCallback) confirmCallback();
+      closeConfirmModal();
+    });
+
+    // تشغيل النظام فور جاهزية الصفحة
     window.addEventListener('DOMContentLoaded', () => {
       initDatabase();
       generateNewSku();
