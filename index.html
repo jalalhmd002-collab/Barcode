@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>نظام فرز ومخزن الملابس | تصميم أبو حازم</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card-bg: rgba(255, 255, 255, 0.92);
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 16px;
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 70px;
+    }
+
+    header {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .brand p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .nav-tabs {
+      display: flex;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 12px;
+      margin: 15px 16px 5px 16px;
+      gap: 4px;
+    }
+
+    .nav-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px 0;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn.active {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 12px 16px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 0.95rem;
+      color: var(--text);
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:active {
+      background: var(--primary-hover);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    #reader {
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px dashed var(--border);
+      background: #000;
+      margin-bottom: 14px;
+    }
+
+    .scanner-mode-switch {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .badge-stock { background: #dcfce7; color: #15803d; }
+    .badge-out { background: #fee2e2; color: #b91c1c; }
+
+    .item-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .item-info h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .item-info p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .label-preview-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .label-box {
+      background: #fff;
+      padding: 20px;
+      border-radius: 16px;
+      max-width: 320px;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* تنسيق خاص بالطباعة الحرارية 50x30 ملم */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .printable-area, .printable-area * {
+        visibility: visible;
+      }
+      .printable-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 50mm;
+        height: 30mm;
+        padding: 2mm;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        text-align: center;
+      }
+      .print-title { font-size: 8pt; font-weight: bold; }
+      .print-sub { font-size: 7pt; }
+      svg { width: 100%; height: 16mm; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>مخزن الملابس | فرز وتخزين</h1>
+      <p>تصميم أبو حازم</p>
+    </div>
+    <span class="badge badge-stock" id="totalCount">0 قطعة</span>
+  </header>
+
+  <div class="nav-tabs">
+    <button class="nav-btn active" onclick="switchTab('scanTab')">المسح والتجهيز</button>
+    <button class="nav-btn" onclick="switchTab('addTab')">إدخال وفرز جديد</button>
+    <button class="nav-btn" onclick="switchTab('listTab')">المخزون</button>
+  </div>
+
+  <div class="container">
+
+    <!-- شاشة المسح والتجهيز (كاميرا أو قارئ خارجي) -->
+    <div id="scanTab" class="tab-content active">
+      <div class="card">
+        <div class="scanner-mode-switch">
+          <button class="btn btn-outline" id="toggleCamBtn" onclick="toggleCamera()">تشغيل الكاميرا</button>
+          <button class="btn btn-outline" onclick="focusHwScanner()">جاهز للمسدس الخارجي</button>
+        </div>
+
+        <div id="reader" style="display: none;"></div>
+
+        <div class="form-group">
+          <label for="hwInput">حقل القارئ الخارجي (USB/Bluetooth):</label>
+          <input type="text" id="hwInput" placeholder="وجّه الماسح أو اكتب الكود واضغط Enter" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- بطاقة نتيجة المسح -->
+      <div id="scanResult" class="card" style="display: none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 id="resTitle" style="font-size:1.1rem;">-</h3>
+          <span id="resStatus" class="badge">-</span>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">الموقع بالرف: <strong id="resLoc" style="color:var(--text);">-</strong></p>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">المقاس: <strong id="resSize" style="color:var(--text);">-</strong></p>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">السعر: <strong id="resPrice" style="color:var(--success);">-</strong></p>
+        
+        <button id="resActionBtn" class="btn btn-primary" onclick="toggleItemStatus()">تغيير الحالة</button>
+      </div>
+    </div>
+
+    <!-- شاشة إدخال صنف جديد وطباعة الباركود -->
+    <div id="addTab" class="tab-content">
+      <div class="card">
+        <form id="addItemForm" onsubmit="saveItem(event)">
+          <div class="form-group">
+            <label>كود القطعة (SKU تلقائي):</label>
+            <input type="text" id="sku" readonly style="background:#f1f5f9; font-weight:700;">
+          </div>
+          <div class="form-group">
+            <label>نوع الصنف / الوصف:</label>
+            <input type="text" id="itemName" placeholder="مثال: جاكيت صوف، قميص جينز" required>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div class="form-group" style="flex: 1;">
+              <label>المقاس:</label>
+              <select id="itemSize">
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="2XL">2XL</option>
+                <option value="أطفال">أطفال</option>
+                <option value="أخرى">أخرى</option>
+              </select>
+            </div>
+            <div class="form-group" style="flex: 1;">
+              <label>موقع الرف (Bin):</label>
+              <input type="text" id="itemLoc" placeholder="مثال: A-01" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>سعر البيع المقترح:</label>
+            <input type="number" id="itemPrice" placeholder="0" min="0" step="1" required>
+          </div>
+          <button type="submit" class="btn btn-success">حفظ وطباعة الملصق</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- شاشة قائمة المخزون -->
+    <div id="listTab" class="tab-content">
+      <div id="itemsContainer"></div>
+    </div>
+
+  </div>
+
+  <!-- نافذة المعاينة والطباعة -->
+  <div class="label-preview-modal" id="printModal">
+    <div class="label-box">
+      <div class="printable-area" id="printArea">
+        <div class="print-title" id="prTitle">جاكيت صوف</div>
+        <svg id="barcodeSvg"></svg>
+        <div class="print-sub" id="prDetails">الموقع: A-01 | المقاس: L | السعر: 50</div>
+      </div>
+      <div style="margin-top: 15px; display:flex; gap:8px;">
+        <button class="btn btn-primary" onclick="window.print()">طباعة الآن</button>
+        <button class="btn btn-outline" onclick="closePrintModal()">إغلاق</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // تهيئة IndexedDB
+    let db;
+    const request = indexedDB.open("ClothesStockDB", 1);
+    request.onupgradeneeded = (e) => {
+      db = e.target.result;
+      if (!db.objectStoreNames.contains("items")) {
+        const store = db.createObjectStore("items", { keyPath: "sku" });
+        store.createIndex("status", "status", { unique: false });
+      }
+    };
+    request.onsuccess = (e) => {
+      db = e.target.result;
+      updateTotalCount();
+      generateNewSku();
+      renderItems();
+    };
+
+    // نغمات الصوت عبر Web Audio API
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playBeep(success = true) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      if (success) {
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // نغمة مرتفعة للنجاح
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.12);
+      } else {
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime); // نغمة منخفضة للخطأ
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+      }
+    }
+
+    // التنقل بين الشاشات
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+
+      if (tabId === 'scanTab') {
+        focusHwScanner();
+      } else if (tabId === 'addTab') {
+        generateNewSku();
+      } else if (tabId === 'listTab') {
+        renderItems();
+      }
+    }
+
+    // توليد كود فريد تلقائي
+    function generateNewSku() {
+      const timestamp = Date.now().toString().slice(-6);
+      document.getElementById('sku').value = 'CLO-' + timestamp;
+    }
+
+    // حفظ الصنف
+    function saveItem(e) {
+      e.preventDefault();
+      const item = {
+        sku: document.getElementById('sku').value.trim(),
+        name: document.getElementById('itemName').value.trim(),
+        size: document.getElementById('itemSize').value,
+        loc: document.getElementById('itemLoc').value.trim().toUpperCase(),
+        price: document.getElementById('itemPrice').value.trim(),
+        status: 'in_stock',
+        date: new Date().toLocaleDateString('en-GB')
+      };
+
+      const tx = db.transaction("items", "readwrite");
+      tx.objectStore("items").put(item);
+      tx.oncomplete = () => {
+        playBeep(true);
+        openPrintModal(item);
+        document.getElementById('addItemForm').reset();
+        generateNewSku();
+        updateTotalCount();
+      };
+    }
+
+    // معاينة الباركود والطباعة
+    function openPrintModal(item) {
+      document.getElementById('prTitle').textContent = item.name;
+      document.getElementById('prDetails').textContent = `الرف: ${item.loc} | مقاس: ${item.size} | السعر: ${item.price}`;
+      JsBarcode("#barcodeSvg", item.sku, {
+        format: "CODE128",
+        height: 40,
+        displayValue: true,
+        fontSize: 14,
+        margin: 0
+      });
+      document.getElementById('printModal').style.display = 'flex';
+    }
+
+    function closePrintModal() {
+      document.getElementById('printModal').style.display = 'none';
+    }
+
+    // معالجة القارئ الخارجي (USB/Bluetooth)
+    const hwInput = document.getElementById('hwInput');
+    hwInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const code = hwInput.value.trim();
+        if (code) {
+          lookupItem(code);
+          hwInput.value = '';
+        }
+      }
+    });
+
+    function focusHwScanner() {
+      setTimeout(() => hwInput.focus(), 100);
+    }
+
+    // معالجة كاميرا الهاتف
+    let html5QrCode = null;
+    let cameraRunning = false;
+    function toggleCamera() {
+      const readerDiv = document.getElementById('reader');
+      const btn = document.getElementById('toggleCamBtn');
+
+      if (!cameraRunning) {
+        readerDiv.style.display = 'block';
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 150 } },
+          (decodedText) => {
+            playBeep(true);
+            lookupItem(decodedText);
+            toggleCamera(); // إيقاف الكاميرا بعد القراءة لتوفير الطاقة
+          },
+          (errorMessage) => {}
+        ).then(() => {
+          cameraRunning = true;
+          btn.textContent = "إيقاف الكاميرا";
+        }).catch(err => {
+          alert("تعذر الوصول للكاميرا، يرجى التأكد من تشغيل الصفحة عبر رابط HTTPS ومنح الإذن.");
+        });
+      } else {
+        html5QrCode.stop().then(() => {
+          readerDiv.style.display = 'none';
+          cameraRunning = false;
+          btn.textContent = "تشغيل الكاميرا";
+        });
+      }
+    }
+
+    // البحث عن القطعة وتحديث الواجهة
+    let currentScannedItem = null;
+    function lookupItem(sku) {
+      const tx = db.transaction("items", "readonly");
+      const req = tx.objectStore("items").get(sku);
+      req.onsuccess = (e) => {
+        const item = e.target.result;
+        const resBox = document.getElementById('scanResult');
+        if (item) {
+          playBeep(true);
+          currentScannedItem = item;
+          resBox.style.display = 'block';
+          document.getElementById('resTitle').textContent = `${item.name} (${item.sku})`;
+          document.getElementById('resLoc').textContent = item.loc;
+          document.getElementById('resSize').textContent = item.size;
+          document.getElementById('resPrice').textContent = `${item.price}`;
+          
+          updateStatusUI(item.status);
+        } else {
+          playBeep(false);
+          resBox.style.display = 'block';
+          document.getElementById('resTitle').textContent = `الرمز: ${sku}`;
+          document.getElementById('resLoc').textContent = "غير مسجل";
+          document.getElementById('resSize').textContent = "-";
+          document.getElementById('resPrice').textContent = "-";
+          document.getElementById('resStatus').className = "badge badge-out";
+          document.getElementById('resStatus').textContent = "غير متوفر";
+          document.getElementById('resActionBtn').style.display = 'none';
+        }
+      };
+    }
+
+    function updateStatusUI(status) {
+      const statusBadge = document.getElementById('resStatus');
+      const actionBtn = document.getElementById('resActionBtn');
+      actionBtn.style.display = 'block';
+
+      if (status === 'in_stock') {
+        statusBadge.className = 'badge badge-stock';
+        statusBadge.textContent = 'متوفر بالمخزن';
+        actionBtn.className = 'btn btn-primary';
+        actionBtn.textContent = 'إخراج للطلب والتوصيل';
+      } else {
+        statusBadge.className = 'badge badge-out';
+        statusBadge.textContent = 'صادر للتوصيل';
+        actionBtn.className = 'btn btn-success';
+        actionBtn.textContent = 'إرجاع إلى الرف (مخزون)';
+      }
+    }
+
+    function toggleItemStatus() {
+      if (!currentScannedItem) return;
+      currentScannedItem.status = currentScannedItem.status === 'in_stock' ? 'dispatched' : 'in_stock';
+      
+      const tx = db.transaction("items", "readwrite");
+      tx.objectStore("items").put(currentScannedItem);
+      tx.oncomplete = () => {
+        playBeep(true);
+        updateStatusUI(currentScannedItem.status);
+        updateTotalCount();
+      };
+    }
+
+    // عرض القائمة وتحديث العداد
+    function renderItems() {
+      const container = document.getElementById('itemsContainer');
+      container.innerHTML = '';
+      const tx = db.transaction("items", "readonly");
+      tx.objectStore("items").openCursor().onsuccess = (e) => {
+        const cursor = e.target.result;
+        if (cursor) {
+          const item = cursor.value;
+          const card = document.createElement('div');
+          card.className = 'item-card';
+          card.innerHTML = `
+            <div class="item-info">
+              <h4>${item.name}</h4>
+              <p>كود: <strong>${item.sku}</strong> | الرف: <strong>${item.loc}</strong> | مقاس: <strong>${item.size}</strong></p>
+              <p>السعر: <strong>${item.price}</strong></p>
+            </div>
+            <div>
+              <span class="badge ${item.status === 'in_stock' ? 'badge-stock' : 'badge-out'}">
+                ${item.status === 'in_stock' ? 'بالمخزن' : 'صادر'}
+              </span>
+            </div>
+          `;
+          container.appendChild(card);
+          cursor.continue();
+        }
+      };
+    }
+
+    function updateTotalCount() {
+      const tx = db.transaction("items", "readonly");
+      tx.objectStore("items").count().onsuccess = (e) => {
+        document.getElementById('totalCount').textContent = `${e.target.result} قطعة`;
+      };
+    }
+  </script>
+</body>
+</html>
