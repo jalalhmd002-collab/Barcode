@@ -190,6 +190,11 @@
           </div>
         </div>
 
+        <!-- تنبيه إرشادي للكاميرا و HTTPS عند الحاجة -->
+        <div id="camNotice" class="hidden mb-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-bold leading-relaxed">
+          💡 إذا ظهر تعذر الوصول للكاميرا: تأكد من الضغط على أيقونة القفل 🔒 في شريط المتصفح ثم السماح بصلاحية الكاميرا (Camera Allow) أو استخدم مسدس الباركود كبديل سريع.
+        </div>
+
         <!-- حقل القارئ الخارجي أو الإدخال اليدوي -->
         <div class="relative">
           <input 
@@ -240,6 +245,11 @@
           <button id="toggleStatusBtn" onclick="toggleCurrentItemStatus()" class="flex-1 py-3 px-4 rounded-xl font-bold text-xs text-white bg-brand-600 hover:bg-brand-700 shadow-md transition-all active:scale-95">
             تجهيز القطعة وصرفها للطلب
           </button>
+          <button onclick="openEditModal(currentItem)" class="p-3 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl transition-all border border-amber-200" title="تعديل البيانات">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+          </button>
           <button onclick="printSingleItemFromScan()" class="p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all" title="طباعة الملصق">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
@@ -259,6 +269,26 @@
         </h2>
 
         <form id="addItemForm" onsubmit="handleItemSave(event)" class="space-y-3.5">
+          <!-- اختيار فئة الصنف -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">نوع القطعة (التصنيف):</label>
+            <div class="grid grid-cols-4 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
+              <button type="button" onclick="selectGenderCategory('MEN')" id="cat-MEN" class="cat-btn py-2 text-xs font-bold rounded-lg bg-white text-brand-700 shadow-sm transition-all">
+                رجال
+              </button>
+              <button type="button" onclick="selectGenderCategory('WMN')" id="cat-WMN" class="cat-btn py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                ستاتي
+              </button>
+              <button type="button" onclick="selectGenderCategory('KID')" id="cat-KID" class="cat-btn py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                أطفال
+              </button>
+              <button type="button" onclick="selectGenderCategory('UNI')" id="cat-UNI" class="cat-btn py-2 text-xs font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                عام
+              </button>
+            </div>
+            <input type="hidden" id="formCategory" value="MEN">
+          </div>
+
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">كود القطعة التلقائي (SKU):</label>
             <div class="flex gap-2">
@@ -274,10 +304,11 @@
             <input type="text" id="formName" placeholder="مثال: جاكيت جينز، هودي قطن، قميص شتوي" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500">
           </div>
 
-          <div class="grid grid-cols-2 gap-3">
+          <!-- تفاصيل المقاس والرف والطبقة -->
+          <div class="grid grid-cols-3 gap-2">
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">المقاس:</label>
-              <select id="formSize" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <select id="formSize" class="w-full px-2 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="XS">XS</option>
                 <option value="S">S</option>
                 <option value="M" selected>M</option>
@@ -290,8 +321,12 @@
               </select>
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">مكان الرف (Bin):</label>
-              <input type="text" id="formLoc" placeholder="مثلاً: A-01" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <label class="block text-xs font-bold text-slate-600 mb-1">رقم الرف:</label>
+              <input type="text" id="formRack" placeholder="مثلاً: A1" required class="w-full px-2 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase focus:outline-none focus:ring-2 focus:ring-brand-500">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">الطبقة:</label>
+              <input type="text" id="formShelf" placeholder="مثلاً: 2" required class="w-full px-2 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase focus:outline-none focus:ring-2 focus:ring-brand-500">
             </div>
           </div>
 
@@ -394,7 +429,7 @@
           <div id="prTitle" class="text-xs font-black text-slate-900 truncate w-full">جاكيت صوف</div>
           <svg id="barcodeSvg" class="my-auto"></svg>
           <div id="prMeta" class="text-[10px] font-bold text-slate-700 w-full flex justify-between px-1">
-            <span id="prLoc">الرف: A-01</span>
+            <span id="prLoc">الرف: A1-2</span>
             <span id="prSize">مقاس: L</span>
             <span id="prPrice">السعر: 50</span>
           </div>
@@ -409,6 +444,67 @@
           إغلاق
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- نافذة تعديل بيانات الصنف (Edit Modal) لتصحيح الأخطاء -->
+  <div id="editModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+        <div>
+          <h3 class="text-sm font-extrabold text-slate-900">تعديل بيانات القطعة</h3>
+          <p id="editSkuDisplay" class="text-[11px] font-mono text-brand-600 font-bold">MEN-000000</p>
+        </div>
+        <button onclick="closeEditModal()" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg">✕</button>
+      </div>
+
+      <form id="editItemForm" onsubmit="handleEditSave(event)" class="space-y-3">
+        <input type="hidden" id="editItemSku">
+        
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">اسم / وصف القطعة:</label>
+          <input type="text" id="editItemName" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold">
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">المقاس:</label>
+            <select id="editItemSize" class="w-full px-2 py-2 rounded-xl border border-slate-200 text-xs font-bold bg-white">
+              <option value="XS">XS</option>
+              <option value="S">S</option>
+              <option value="M">M</option>
+              <option value="L">L</option>
+              <option value="XL">XL</option>
+              <option value="2XL">2XL</option>
+              <option value="3XL">3XL</option>
+              <option value="أطفال">أطفال</option>
+              <option value="Free Size">Free Size</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">الرف:</label>
+            <input type="text" id="editItemRack" required class="w-full px-2 py-2 rounded-xl border border-slate-200 text-xs font-bold uppercase">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">الطبقة:</label>
+            <input type="text" id="editItemShelf" required class="w-full px-2 py-2 rounded-xl border border-slate-200 text-xs font-bold uppercase">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">السعر:</label>
+          <input type="number" id="editItemPrice" required min="1" step="1" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold">
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="submit" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md active:scale-95 transition-all">
+            حفظ التعديلات
+          </button>
+          <button type="button" onclick="closeEditModal()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">
+            إلغاء
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -562,6 +658,7 @@
     async function startCamera() {
       const box = document.getElementById('cameraBox');
       const btnText = document.getElementById('camBtnText');
+      const notice = document.getElementById('camNotice');
 
       try {
         box.classList.remove('hidden');
@@ -569,14 +666,12 @@
           html5QrCode = new Html5Qrcode("reader");
         }
 
-        // إعداد تكوين المسح لسرعة التعرف
         const config = {
           fps: 15,
           qrbox: { width: 220, height: 140 },
           aspectRatio: 1.333333
         };
 
-        // محاولة تشغيل الكاميرا الخلفية تلقائياً
         await html5QrCode.start(
           { facingMode: "environment" },
           config,
@@ -586,13 +681,15 @@
 
         isCameraActive = true;
         btnText.textContent = "إيقاف الكاميرا";
+        notice.classList.add('hidden');
       } catch (err) {
         console.error("Camera error:", err);
         box.classList.add('hidden');
         isCameraActive = false;
         btnText.textContent = "فتح الكاميرا للمسح";
+        notice.classList.remove('hidden');
         playBeep('error');
-        showToast("تأكد من فتح الرابط عبر HTTPS ومنح صلاحية الكاميرا", "error");
+        showToast("يرجى إعطاء الإذن للكاميرا أو استخدام مسدس الباركود", "error");
       }
     }
 
@@ -612,128 +709,43 @@
     function onScanSuccess(decodedText) {
       playBeep('success');
       processBarcode(decodedText);
-      // إيقاف مؤقت لمنع التكرار المستمر
       stopCamera();
     }
 
     function onScanFailure(error) {
-      // تفادي التكرار عند عدم العثور على كود في كل إطار
+      // تجاهل محاولات التعرف المستمرة
     }
 
     // -------------------------------------------------------------
     // 6. التعامل مع ماسح الباركود الخارجي والبحث
     // -------------------------------------------------------------
-    const scannerInput = document.getElementById('scannerInput');
-    scannerInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const code = scannerInput.value.trim();
-        if (code) {
-          processBarcode(code);
-          scannerInput.value = '';
-        }
-      }
-    });
-
-    function focusExternalScanner() {
-      setTimeout(() => {
-        scannerInput.focus();
-        showToast("حقل المسدس الخارجي جاهز للقراءة", "info");
-      }, 100);
-    }
-
-    function handleManualSearch() {
-      const code = scannerInput.value.trim();
-      if (code) {
-        processBarcode(code);
-        scannerInput.value = '';
-      }
-    }
-
-    let currentItem = null;
-    function processBarcode(code) {
-      if (!db) return;
-      const cleanSku = code.trim();
-      const tx = db.transaction("clothes", "readonly");
-      const store = tx.objectStore("clothes");
-      const req = store.get(cleanSku);
-
-      req.onsuccess = (e) => {
-        const item = e.target.result;
-        const resultCard = document.getElementById('scanResultCard');
-        resultCard.classList.remove('hidden');
-
-        if (item) {
-          playBeep('success');
-          currentItem = item;
-          document.getElementById('scannedSku').textContent = item.sku;
-          document.getElementById('scannedTitle').textContent = item.name;
-          document.getElementById('scannedLoc').textContent = item.loc;
-          document.getElementById('scannedSize').textContent = item.size;
-          document.getElementById('scannedPrice').textContent = `${item.price}`;
-          renderStatusInCard(item.status);
-        } else {
-          playBeep('error');
-          currentItem = null;
-          document.getElementById('scannedSku').textContent = cleanSku;
-          document.getElementById('scannedTitle').textContent = "هذه القطعة غير مسجلة في المخزن!";
-          document.getElementById('scannedLoc').textContent = "-";
-          document.getElementById('scannedSize').textContent = "-";
-          document.getElementById('scannedPrice').textContent = "-";
-          
-          const badge = document.getElementById('scannedStatusBadge');
-          badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800";
-          badge.textContent = "غير موجودة";
-
-          const btn = document.getElementById('toggleStatusBtn');
-          btn.className = "hidden";
-          showToast(`الكود (${cleanSku}) غير موجود`, "error");
-        }
-      };
-    }
-
-    function renderStatusInCard(status) {
-      const badge = document.getElementById('scannedStatusBadge');
-      const btn = document.getElementById('toggleStatusBtn');
-      btn.classList.remove('hidden');
-
-      if (status === 'in_stock') {
-        badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800";
-        badge.textContent = "بالمخزن";
-
-        btn.className = "flex-1 py-3 px-4 rounded-xl font-bold text-xs text-white bg-brand-600 hover:bg-brand-700 shadow-md active:scale-95 transition-all";
-        btn.textContent = "تجهيز القطعة وصرفها للطلب";
-      } else {
-        badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800";
-        badge.textContent = "صادر للتوصيل";
-
-        btn.className = "flex-1 py-3 px-4 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 shadow-md active:scale-95 transition-all";
-        btn.textContent = "إرجاع القطعة إلى الرف (مخزون)";
-      }
-    }
-
-    function toggleCurrentItemStatus() {
-      if (!currentItem) return;
-      const newStatus = currentItem.status === 'in_stock' ? 'dispatched' : 'in_stock';
-      currentItem.status = newStatus;
-
-      const tx = db.transaction("clothes", "readwrite");
-      tx.objectStore("clothes").put(currentItem);
-      tx.oncomplete = () => {
-        playBeep('success');
-        renderStatusInCard(newStatus);
-        updateStockCount();
-        showToast(newStatus === 'in_stock' ? "أُعيدت القطعة للمخزن" : "تم صرف القطعة للتوصيل", "success");
-      };
-    }
-
+    // 7. إدارة الفئات وتوليد الباركود الذكي
     // -------------------------------------------------------------
-    // 7. إدخال قطعة جديدة وتوليد الباركود
-    // -------------------------------------------------------------
+    let currentCategory = 'MEN';
+
+    function selectGenderCategory(cat) {
+      currentCategory = cat;
+      document.getElementById('formCategory').value = cat;
+
+      // تحديث أزرار الفئات
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-brand-700', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+
+      const activeBtn = document.getElementById(`cat-${cat}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-white', 'text-brand-700', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-600');
+      }
+
+      generateNewSku();
+    }
+
     function generateNewSku() {
-      // توليد رقم عشوائي بالإنجليزية فريد
-      const randomNum = Math.floor(100000 + Math.random() * 900000);
-      document.getElementById('formSku').value = `CLO-${randomNum}`;
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      const prefix = currentCategory || 'MEN';
+      document.getElementById('formSku').value = `${prefix}-${randomNum}`;
     }
 
     function handleItemSave(e) {
@@ -741,15 +753,22 @@
       const sku = document.getElementById('formSku').value.trim();
       const name = document.getElementById('formName').value.trim();
       const size = document.getElementById('formSize').value;
-      const loc = document.getElementById('formLoc').value.trim().toUpperCase();
+      const rack = document.getElementById('formRack').value.trim().toUpperCase();
+      const shelf = document.getElementById('formShelf').value.trim().toUpperCase();
       const price = document.getElementById('formPrice').value.trim();
+      const category = currentCategory;
+
+      const fullLoc = `${rack}-L${shelf}`; // دمج الرف والطبقة كودياً
 
       const item = {
         sku,
         name,
         size,
-        loc,
+        rack,
+        shelf,
+        loc: fullLoc,
         price,
+        category,
         status: 'in_stock',
         createdAt: new Date().toISOString()
       };
@@ -762,18 +781,76 @@
         updateStockCount();
         openPrintModal(item);
 
-        // تجهيز النموذج للصنف التالي
         document.getElementById('formName').value = '';
         generateNewSku();
       };
     }
 
     // -------------------------------------------------------------
-    // 8. معاينة وطباعة ملصق الباركود الحراري (JsBarcode)
+    // 8. تعديل بيانات الصنف (Edit Modal)
+    // -------------------------------------------------------------
+    function openEditModal(item) {
+      if (!item) return;
+      document.getElementById('editItemSku').value = item.sku;
+      document.getElementById('editSkuDisplay').textContent = `${item.sku} (${item.category || 'عام'})`;
+      document.getElementById('editItemName').value = item.name;
+      document.getElementById('editItemSize').value = item.size;
+      document.getElementById('editItemRack').value = item.rack || (item.loc ? item.loc.split('-')[0] : '');
+      document.getElementById('editItemShelf').value = item.shelf || (item.loc && item.loc.includes('-L') ? item.loc.split('-L')[1] : '1');
+      document.getElementById('editItemPrice').value = item.price;
+
+      document.getElementById('editModal').classList.remove('hidden');
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.add('hidden');
+    }
+
+    function handleEditSave(e) {
+      e.preventDefault();
+      const sku = document.getElementById('editItemSku').value;
+      const name = document.getElementById('editItemName').value.trim();
+      const size = document.getElementById('editItemSize').value;
+      const rack = document.getElementById('editItemRack').value.trim().toUpperCase();
+      const shelf = document.getElementById('editItemShelf').value.trim().toUpperCase();
+      const price = document.getElementById('editItemPrice').value.trim();
+      const fullLoc = `${rack}-L${shelf}`;
+
+      const tx = db.transaction("clothes", "readwrite");
+      const store = tx.objectStore("clothes");
+      store.get(sku).onsuccess = (ev) => {
+        const item = ev.target.result;
+        if (item) {
+          item.name = name;
+          item.size = size;
+          item.rack = rack;
+          item.shelf = shelf;
+          item.loc = fullLoc;
+          item.price = price;
+          store.put(item);
+        }
+      };
+
+      tx.oncomplete = () => {
+        playBeep('success');
+        showToast("تم تحديث البيانات بنجاح", "success");
+        closeEditModal();
+        loadInventory();
+
+        // تحديث بطاقة نتيجة البحث إذا كانت معروضة
+        if (currentItem && currentItem.sku === sku) {
+          processBarcode(sku);
+        }
+      };
+    }
+
+    // -------------------------------------------------------------
+    // 9. معاينة وطباعة ملصق الباركود الحراري (JsBarcode)
     // -------------------------------------------------------------
     function openPrintModal(item) {
+      const locStr = item.rack && item.shelf ? `الرف: ${item.rack} | ط: ${item.shelf}` : `الموقع: ${item.loc}`;
       document.getElementById('prTitle').textContent = item.name;
-      document.getElementById('prLoc').textContent = `الرف: ${item.loc}`;
+      document.getElementById('prLoc').textContent = locStr;
       document.getElementById('prSize').textContent = `مقاس: ${item.size}`;
       document.getElementById('prPrice').textContent = `السعر: ${item.price}`;
 
@@ -806,7 +883,7 @@
     }
 
     // -------------------------------------------------------------
-    // 9. إدارة شاشة المخزون والفلترة
+    // 10. إدارة شاشة المخزون والفلترة
     // -------------------------------------------------------------
     let allItems = [];
     function loadInventory() {
@@ -828,7 +905,8 @@
         const matchesQuery = 
           item.sku.toLowerCase().includes(q) ||
           item.name.toLowerCase().includes(q) ||
-          item.loc.toLowerCase().includes(q);
+          (item.loc && item.loc.toLowerCase().includes(q)) ||
+          (item.rack && item.rack.toLowerCase().includes(q));
 
         const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
         return matchesQuery && matchesStatus;
@@ -859,6 +937,8 @@
           ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">بالمخزن</span>`
           : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60">صادر</span>`;
 
+        const locText = item.rack && item.shelf ? `رف ${item.rack} (ط${item.shelf})` : item.loc;
+
         card.innerHTML = `
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-1">
@@ -867,12 +947,17 @@
             </div>
             <h4 class="text-xs font-extrabold text-slate-800 truncate">${item.name}</h4>
             <div class="flex gap-3 text-[11px] text-slate-500 font-bold mt-1">
-              <span>الرف: <strong class="text-slate-700">${item.loc}</strong></span>
+              <span>المكان: <strong class="text-slate-700">${locText}</strong></span>
               <span>مقاس: <strong class="text-slate-700">${item.size}</strong></span>
               <span>السعر: <strong class="text-emerald-600">${item.price}</strong></span>
             </div>
           </div>
           <div class="flex items-center gap-1">
+            <button onclick='openEditModal(${JSON.stringify(item)})' class="p-2 text-slate-500 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition-colors" title="تعديل">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+              </svg>
+            </button>
             <button onclick='openPrintModal(${JSON.stringify(item)})' class="p-2 text-slate-500 hover:text-brand-600 rounded-lg hover:bg-slate-100 transition-colors" title="طباعة باركود">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
