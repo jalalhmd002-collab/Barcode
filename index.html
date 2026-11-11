@@ -3,640 +3,978 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>نظام فرز ومخزن الملابس | تصميم أبو حازم</title>
+  <title>مخزن الملابس | فرز وتخزين - تصميم أبو حازم</title>
+  
+  <!-- خط Cairo والتنسيق العصري -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- مكتبات الباركود والكاميرا ومكتبة التنسيق السريع -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
 
   <style>
-    :root {
-      --bg: #f4f6fb;
-      --card-bg: rgba(255, 255, 255, 0.92);
-      --primary: #2563eb;
-      --primary-hover: #1d4ed8;
-      --success: #16a34a;
-      --danger: #dc2626;
-      --warning: #d97706;
-      --text: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --radius: 16px;
-      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
-    }
-
+    /* فرض الأرقام الإنجليزية في كامل التطبيق */
     * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Cairo', sans-serif;
+      font-variant-numeric: tabular-nums lining-nums;
+      -webkit-font-feature-settings: "tnum" 1, "lnum" 1;
+      font-feature-settings: "tnum" 1, "lnum" 1;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    input, textarea {
+      user-select: text;
     }
 
     body {
-      background: var(--bg);
-      color: var(--text);
+      background: radial-gradient(circle at top right, #f8fafc, #edf2f7);
+      color: #0f172a;
       min-height: 100vh;
-      padding-bottom: 70px;
     }
 
-    header {
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    /* كروت زجاجية بنمط Glassmorphism */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(226, 232, 240, 0.8);
     }
 
-    .brand h1 {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: var(--primary);
+    /* منطقة قارئ الكاميرا */
+    #reader video {
+      object-fit: cover !important;
+      border-radius: 1rem;
+      width: 100% !important;
     }
-
-    .brand p {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .nav-tabs {
-      display: flex;
-      background: #e2e8f0;
-      padding: 4px;
-      border-radius: 12px;
-      margin: 15px 16px 5px 16px;
-      gap: 4px;
-    }
-
-    .nav-btn {
-      flex: 1;
-      border: none;
-      background: transparent;
-      padding: 10px 0;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .nav-btn.active {
-      background: #fff;
-      color: var(--primary);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-    }
-
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 12px 16px;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      padding: 18px;
-      box-shadow: var(--shadow);
-      margin-bottom: 16px;
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-
-    label {
-      display: block;
-      font-size: 0.82rem;
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: var(--text);
-    }
-
-    input, select {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: #fff;
-      font-size: 0.95rem;
-      color: var(--text);
-      outline: none;
-      transition: border 0.2s;
-    }
-
-    input:focus, select:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-    }
-
-    .btn {
-      width: 100%;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: 0.2s;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: #fff;
-    }
-
-    .btn-primary:active {
-      background: var(--primary-hover);
-    }
-
-    .btn-success {
-      background: var(--success);
-      color: #fff;
-    }
-
-    .btn-outline {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-    }
-
     #reader {
-      width: 100%;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 2px dashed var(--border);
-      background: #000;
-      margin-bottom: 14px;
+      border: none !important;
+    }
+    #reader__scan_region {
+      background: transparent !important;
     }
 
-    .scanner-mode-switch {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
+    /* أنيميشن إشعار التوست */
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .toast-anim {
+      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
-
-    .badge-stock { background: #dcfce7; color: #15803d; }
-    .badge-out { background: #fee2e2; color: #b91c1c; }
-
-    .item-card {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .item-info h4 {
-      font-size: 0.95rem;
-      font-weight: 700;
-    }
-
-    .item-info p {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-
-    .label-preview-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .label-box {
-      background: #fff;
-      padding: 20px;
-      border-radius: 16px;
-      max-width: 320px;
-      width: 100%;
-      text-align: center;
-    }
-
-    /* تنسيق خاص بالطباعة الحرارية 50x30 ملم */
+    /* أنماط طباعة الملصق الحراري 50x30 مم */
     @media print {
       body * {
-        visibility: hidden;
+        visibility: hidden !important;
       }
-      .printable-area, .printable-area * {
-        visibility: visible;
+      #printArea, #printArea * {
+        visibility: visible !important;
       }
-      .printable-area {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 50mm;
-        height: 30mm;
-        padding: 2mm;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        text-align: center;
+      #printArea {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 50mm !important;
+        height: 30mm !important;
+        margin: 0 !important;
+        padding: 1.5mm !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        background: white !important;
+        box-sizing: border-box !important;
       }
-      .print-title { font-size: 8pt; font-weight: bold; }
-      .print-sub { font-size: 7pt; }
-      svg { width: 100%; height: 16mm; }
+      #printArea svg {
+        max-width: 100% !important;
+        height: 14mm !important;
+      }
     }
   </style>
 </head>
-<body>
+<body class="font-sans antialiased text-slate-800 pb-20">
 
-  <header>
-    <div class="brand">
-      <h1>مخزن الملابس | فرز وتخزين</h1>
-      <p>تصميم أبو حازم</p>
+  <!-- الترويسة الرئيسية -->
+  <header class="sticky top-0 z-40 glass-card border-b border-slate-200/80 px-4 py-3.5 shadow-sm">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base font-extrabold text-slate-900 leading-tight">مخزن الملابس | فرز وتخزين</h1>
+          <p class="text-xs font-semibold text-brand-600">تصميم أبو حازم</p>
+        </div>
+      </div>
+      <div class="bg-emerald-50 border border-emerald-200/60 rounded-xl px-3 py-1.5 text-center">
+        <span class="block text-[10px] font-bold text-emerald-600">بالمخزن</span>
+        <span id="headerStockCount" class="text-sm font-black text-emerald-700">0</span>
+      </div>
     </div>
-    <span class="badge badge-stock" id="totalCount">0 قطعة</span>
   </header>
 
-  <div class="nav-tabs">
-    <button class="nav-btn active" onclick="switchTab('scanTab')">المسح والتجهيز</button>
-    <button class="nav-btn" onclick="switchTab('addTab')">إدخال وفرز جديد</button>
-    <button class="nav-btn" onclick="switchTab('listTab')">المخزون</button>
+  <!-- شريط التنقل بين التبويبات -->
+  <div class="max-w-md mx-auto px-4 mt-3">
+    <div class="grid grid-cols-4 gap-1 p-1 bg-slate-200/70 rounded-2xl">
+      <button onclick="switchTab('scan')" id="tab-scan" class="tab-btn py-2 text-xs font-bold rounded-xl transition-all duration-200 bg-white text-brand-700 shadow-sm">
+        المسح
+      </button>
+      <button onclick="switchTab('add')" id="tab-add" class="tab-btn py-2 text-xs font-bold rounded-xl transition-all duration-200 text-slate-600 hover:text-slate-900">
+        فرز جديد
+      </button>
+      <button onclick="switchTab('inventory')" id="tab-inventory" class="tab-btn py-2 text-xs font-bold rounded-xl transition-all duration-200 text-slate-600 hover:text-slate-900">
+        المخزون
+      </button>
+      <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn py-2 text-xs font-bold rounded-xl transition-all duration-200 text-slate-600 hover:text-slate-900">
+        البيانات
+      </button>
+    </div>
   </div>
 
-  <div class="container">
+  <!-- المحتوى الرئيسي -->
+  <main class="max-w-md mx-auto px-4 mt-4">
 
-    <!-- شاشة المسح والتجهيز (كاميرا أو قارئ خارجي) -->
-    <div id="scanTab" class="tab-content active">
-      <div class="card">
-        <div class="scanner-mode-switch">
-          <button class="btn btn-outline" id="toggleCamBtn" onclick="toggleCamera()">تشغيل الكاميرا</button>
-          <button class="btn btn-outline" onclick="focusHwScanner()">جاهز للمسدس الخارجي</button>
-        </div>
-
-        <div id="reader" style="display: none;"></div>
-
-        <div class="form-group">
-          <label for="hwInput">حقل القارئ الخارجي (USB/Bluetooth):</label>
-          <input type="text" id="hwInput" placeholder="وجّه الماسح أو اكتب الكود واضغط Enter" autocomplete="off">
-        </div>
-      </div>
-
-      <!-- بطاقة نتيجة المسح -->
-      <div id="scanResult" class="card" style="display: none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <h3 id="resTitle" style="font-size:1.1rem;">-</h3>
-          <span id="resStatus" class="badge">-</span>
-        </div>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">الموقع بالرف: <strong id="resLoc" style="color:var(--text);">-</strong></p>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:4px;">المقاس: <strong id="resSize" style="color:var(--text);">-</strong></p>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;">السعر: <strong id="resPrice" style="color:var(--success);">-</strong></p>
+    <!-- 1. شاشة المسح والتجهيز -->
+    <section id="view-scan" class="space-y-4">
+      
+      <!-- نافذة الكاميرا وحقل القارئ الخارجي -->
+      <div class="glass-card rounded-2xl p-4 shadow-sm border border-slate-200/80">
         
-        <button id="resActionBtn" class="btn btn-primary" onclick="toggleItemStatus()">تغيير الحالة</button>
-      </div>
-    </div>
+        <!-- أزرار اختيار وضع المسح -->
+        <div class="flex gap-2 mb-3">
+          <button id="camToggleBtn" onclick="toggleCamera()" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-brand-600 text-white font-bold text-xs shadow-md shadow-brand-500/25 active:scale-95 transition-transform">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span id="camBtnText">فتح الكاميرا للمسح</span>
+          </button>
+          
+          <button onclick="focusExternalScanner()" class="px-3 py-2.5 rounded-xl border border-slate-300 text-slate-700 bg-white font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all">
+            مسدس الباركود
+          </button>
+        </div>
 
-    <!-- شاشة إدخال صنف جديد وطباعة الباركود -->
-    <div id="addTab" class="tab-content">
-      <div class="card">
-        <form id="addItemForm" onsubmit="saveItem(event)">
-          <div class="form-group">
-            <label>كود القطعة (SKU تلقائي):</label>
-            <input type="text" id="sku" readonly style="background:#f1f5f9; font-weight:700;">
+        <!-- صندوق الكاميرا التفاعلي -->
+        <div id="cameraBox" class="hidden relative overflow-hidden rounded-2xl bg-black mb-3 aspect-[4/3] flex items-center justify-center">
+          <div id="reader" class="w-full h-full"></div>
+          <div class="absolute inset-0 pointer-events-none border-2 border-dashed border-emerald-400/80 m-8 rounded-xl flex items-center justify-center">
+            <div class="w-full h-0.5 bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></div>
           </div>
-          <div class="form-group">
-            <label>نوع الصنف / الوصف:</label>
-            <input type="text" id="itemName" placeholder="مثال: جاكيت صوف، قميص جينز" required>
+        </div>
+
+        <!-- حقل القارئ الخارجي أو الإدخال اليدوي -->
+        <div class="relative">
+          <input 
+            type="text" 
+            id="scannerInput" 
+            placeholder="امسح بالباركود أو اكتب الكود ثم اضغط Enter"
+            autocomplete="off"
+            autofocus
+            class="w-full pr-10 pl-16 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent shadow-inner"
+          />
+          <div class="absolute right-3 top-3.5 text-slate-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+            </svg>
           </div>
-          <div style="display: flex; gap: 10px;">
-            <div class="form-group" style="flex: 1;">
-              <label>المقاس:</label>
-              <select id="itemSize">
+          <button onclick="handleManualSearch()" class="absolute left-1.5 top-1.5 bottom-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors">
+            بحث
+          </button>
+        </div>
+      </div>
+
+      <!-- بطاقة نتيجة الصنف المفحوص -->
+      <div id="scanResultCard" class="hidden glass-card rounded-2xl p-4 shadow-sm border border-slate-200/80">
+        <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <span id="scannedSku" class="text-xs font-mono font-extrabold text-brand-600 bg-brand-50 px-2 py-0.5 rounded-md">CLO-000000</span>
+            <h2 id="scannedTitle" class="text-base font-extrabold text-slate-900 mt-1">-</h2>
+          </div>
+          <span id="scannedStatusBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">بالمخزن</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 my-3 text-center">
+          <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl">
+            <span class="text-[10px] text-slate-400 font-bold block">موقع الرف</span>
+            <span id="scannedLoc" class="text-sm font-black text-slate-800">A-01</span>
+          </div>
+          <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl">
+            <span class="text-[10px] text-slate-400 font-bold block">المقاس</span>
+            <span id="scannedSize" class="text-sm font-black text-slate-800">L</span>
+          </div>
+          <div class="bg-slate-50 border border-slate-100 p-2 rounded-xl">
+            <span class="text-[10px] text-slate-400 font-bold block">السعر</span>
+            <span id="scannedPrice" class="text-sm font-black text-emerald-600">50</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button id="toggleStatusBtn" onclick="toggleCurrentItemStatus()" class="flex-1 py-3 px-4 rounded-xl font-bold text-xs text-white bg-brand-600 hover:bg-brand-700 shadow-md transition-all active:scale-95">
+            تجهيز القطعة وصرفها للطلب
+          </button>
+          <button onclick="printSingleItemFromScan()" class="p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all" title="طباعة الملصق">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 2. شاشة إدخال وفرز جديد -->
+    <section id="view-add" class="hidden space-y-4">
+      <div class="glass-card rounded-2xl p-5 shadow-sm border border-slate-200/80">
+        <h2 class="text-sm font-extrabold text-slate-900 mb-4 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-brand-600"></span>
+          بيانات القطعة المفروزة وتوليد الباركود
+        </h2>
+
+        <form id="addItemForm" onsubmit="handleItemSave(event)" class="space-y-3.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">كود القطعة التلقائي (SKU):</label>
+            <div class="flex gap-2">
+              <input type="text" id="formSku" readonly class="w-full bg-slate-100 font-mono font-bold text-slate-700 px-3 py-2.5 rounded-xl border border-slate-200 text-xs">
+              <button type="button" onclick="generateNewSku()" class="px-3 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition-colors">
+                تجديد
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">نوع القطعة / الوصف:</label>
+            <input type="text" id="formName" placeholder="مثال: جاكيت جينز، هودي قطن، قميص شتوي" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">المقاس:</label>
+              <select id="formSize" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="XS">XS</option>
                 <option value="S">S</option>
-                <option value="M">M</option>
+                <option value="M" selected>M</option>
                 <option value="L">L</option>
                 <option value="XL">XL</option>
                 <option value="2XL">2XL</option>
+                <option value="3XL">3XL</option>
                 <option value="أطفال">أطفال</option>
-                <option value="أخرى">أخرى</option>
+                <option value="Free Size">Free Size</option>
               </select>
             </div>
-            <div class="form-group" style="flex: 1;">
-              <label>موقع الرف (Bin):</label>
-              <input type="text" id="itemLoc" placeholder="مثال: A-01" required>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">مكان الرف (Bin):</label>
+              <input type="text" id="formLoc" placeholder="مثلاً: A-01" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold uppercase focus:outline-none focus:ring-2 focus:ring-brand-500">
             </div>
           </div>
-          <div class="form-group">
-            <label>سعر البيع المقترح:</label>
-            <input type="number" id="itemPrice" placeholder="0" min="0" step="1" required>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">سعر البيع المقترح:</label>
+            <input type="number" id="formPrice" placeholder="0" min="1" step="1" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-brand-500">
           </div>
-          <button type="submit" class="btn btn-success">حفظ وطباعة الملصق</button>
+
+          <div class="pt-2">
+            <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold shadow-md shadow-emerald-600/25 active:scale-95 transition-all flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+              </svg>
+              <span>حفظ القطعة وطباعة الملصق الحراري</span>
+            </button>
+          </div>
         </form>
       </div>
-    </div>
+    </section>
 
-    <!-- شاشة قائمة المخزون -->
-    <div id="listTab" class="tab-content">
-      <div id="itemsContainer"></div>
-    </div>
+    <!-- 3. شاشة إدارة المخزون -->
+    <section id="view-inventory" class="hidden space-y-3">
+      <!-- شريط البحث والفلترة -->
+      <div class="glass-card rounded-2xl p-3 border border-slate-200/80 shadow-sm flex flex-col gap-2">
+        <div class="relative">
+          <input 
+            type="text" 
+            id="invSearch" 
+            oninput="filterInventory()" 
+            placeholder="بحث بالاسم، الباركود أو الرف..." 
+            class="w-full pr-9 pl-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500"
+          >
+          <svg class="w-4 h-4 absolute right-3 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+        <div class="flex gap-2">
+          <select id="invStatusFilter" onchange="filterInventory()" class="w-full py-1.5 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700">
+            <option value="all">كل الحالات</option>
+            <option value="in_stock" selected>بالمخزن فقط</option>
+            <option value="dispatched">صادر للتوصيل</option>
+          </select>
+        </div>
+      </div>
 
+      <!-- قائمة البطاقات -->
+      <div id="inventoryList" class="space-y-2">
+        <!-- تُملأ بواسطة JavaScript -->
+      </div>
+    </section>
+
+    <!-- 4. شاشة البيانات والنسخ الاحتياطي -->
+    <section id="view-settings" class="hidden space-y-4">
+      <div class="glass-card rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
+        <div>
+          <h3 class="text-sm font-extrabold text-slate-900">النسخ الاحتياطي والمزامنة</h3>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            يمكنك حفظ قاعدة بيانات الملابس والأرفف كاملة في ملف خارجي، أو استعادتها على أي هاتف أو كمبيوتر آخر.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-2 pt-2">
+          <button onclick="exportDataBackup()" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-extrabold shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            تصدير نسخة احتياطية (JSON)
+          </button>
+
+          <label class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-extrabold text-center cursor-pointer border border-slate-200 transition-colors flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+            استيراد بيانات من ملف
+            <input type="file" id="importFileInput" accept=".json" onchange="importDataBackup(event)" class="hidden">
+          </label>
+        </div>
+
+        <div class="border-t border-slate-100 pt-4">
+          <button onclick="clearAllDataPrompt()" class="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-colors">
+            تفريغ جميع البيانات (إعادة ضبط المصنع)
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- نافذة المعاينة والطباعة المخصصة للملصق الحراري -->
+  <div id="printModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xs w-full p-5 shadow-2xl space-y-4">
+      <div class="text-center">
+        <h3 class="text-sm font-extrabold text-slate-900">معاينة ملصق الباركود</h3>
+        <p class="text-[11px] text-slate-400 font-bold mt-0.5">مقاس مخصص 50x30 ملم (طابعات حرارية)</p>
+      </div>
+
+      <!-- الملصق الفعلي المراد طباعته -->
+      <div class="flex justify-center">
+        <div id="printArea" class="border-2 border-dashed border-slate-300 p-2 rounded-xl flex flex-col items-center justify-between text-center bg-white" style="width: 200px; height: 120px;">
+          <div id="prTitle" class="text-xs font-black text-slate-900 truncate w-full">جاكيت صوف</div>
+          <svg id="barcodeSvg" class="my-auto"></svg>
+          <div id="prMeta" class="text-[10px] font-bold text-slate-700 w-full flex justify-between px-1">
+            <span id="prLoc">الرف: A-01</span>
+            <span id="prSize">مقاس: L</span>
+            <span id="prPrice">السعر: 50</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="triggerPrintNow()" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/25 active:scale-95 transition-all">
+          طباعة الملصق
+        </button>
+        <button onclick="closePrintModal()" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all">
+          إغلاق
+        </button>
+      </div>
+    </div>
   </div>
 
-  <!-- نافذة المعاينة والطباعة -->
-  <div class="label-preview-modal" id="printModal">
-    <div class="label-box">
-      <div class="printable-area" id="printArea">
-        <div class="print-title" id="prTitle">جاكيت صوف</div>
-        <svg id="barcodeSvg"></svg>
-        <div class="print-sub" id="prDetails">الموقع: A-01 | المقاس: L | السعر: 50</div>
-      </div>
-      <div style="margin-top: 15px; display:flex; gap:8px;">
-        <button class="btn btn-primary" onclick="window.print()">طباعة الآن</button>
-        <button class="btn btn-outline" onclick="closePrintModal()">إغلاق</button>
-      </div>
-    </div>
-  </div>
+  <!-- حاوية التوست للإشعارات الفورية بدون Alert -->
+  <div id="toastContainer" class="fixed bottom-4 left-4 right-4 z-50 pointer-events-none flex flex-col items-center gap-2"></div>
 
+  <!-- سكربت المنطق البرمجي -->
   <script>
-    // تهيئة IndexedDB
+    // -------------------------------------------------------------
+    // 1. قاعدة البيانات المحلية (IndexedDB)
+    // -------------------------------------------------------------
     let db;
-    const request = indexedDB.open("ClothesStockDB", 1);
-    request.onupgradeneeded = (e) => {
-      db = e.target.result;
-      if (!db.objectStoreNames.contains("items")) {
-        const store = db.createObjectStore("items", { keyPath: "sku" });
-        store.createIndex("status", "status", { unique: false });
-      }
-    };
-    request.onsuccess = (e) => {
-      db = e.target.result;
-      updateTotalCount();
-      generateNewSku();
-      renderItems();
-    };
+    const DB_NAME = "ClothesWarehouseDB_v1";
+    const DB_VERSION = 1;
 
-    // نغمات الصوت عبر Web Audio API
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playBeep(success = true) {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      if (success) {
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // نغمة مرتفعة للنجاح
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.12);
-      } else {
-        osc.frequency.setValueAtTime(220, audioCtx.currentTime); // نغمة منخفضة للخطأ
-        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.25);
-      }
-    }
-
-    // التنقل بين الشاشات
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      event.target.classList.add('active');
-
-      if (tabId === 'scanTab') {
-        focusHwScanner();
-      } else if (tabId === 'addTab') {
-        generateNewSku();
-      } else if (tabId === 'listTab') {
-        renderItems();
-      }
-    }
-
-    // توليد كود فريد تلقائي
-    function generateNewSku() {
-      const timestamp = Date.now().toString().slice(-6);
-      document.getElementById('sku').value = 'CLO-' + timestamp;
-    }
-
-    // حفظ الصنف
-    function saveItem(e) {
-      e.preventDefault();
-      const item = {
-        sku: document.getElementById('sku').value.trim(),
-        name: document.getElementById('itemName').value.trim(),
-        size: document.getElementById('itemSize').value,
-        loc: document.getElementById('itemLoc').value.trim().toUpperCase(),
-        price: document.getElementById('itemPrice').value.trim(),
-        status: 'in_stock',
-        date: new Date().toLocaleDateString('en-GB')
-      };
-
-      const tx = db.transaction("items", "readwrite");
-      tx.objectStore("items").put(item);
-      tx.oncomplete = () => {
-        playBeep(true);
-        openPrintModal(item);
-        document.getElementById('addItemForm').reset();
-        generateNewSku();
-        updateTotalCount();
-      };
-    }
-
-    // معاينة الباركود والطباعة
-    function openPrintModal(item) {
-      document.getElementById('prTitle').textContent = item.name;
-      document.getElementById('prDetails').textContent = `الرف: ${item.loc} | مقاس: ${item.size} | السعر: ${item.price}`;
-      JsBarcode("#barcodeSvg", item.sku, {
-        format: "CODE128",
-        height: 40,
-        displayValue: true,
-        fontSize: 14,
-        margin: 0
+    function initDatabase() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          db = e.target.result;
+          if (!db.objectStoreNames.contains("clothes")) {
+            const store = db.createObjectStore("clothes", { keyPath: "sku" });
+            store.createIndex("status", "status", { unique: false });
+            store.createIndex("loc", "loc", { unique: false });
+          }
+        };
+        req.onsuccess = (e) => {
+          db = e.target.result;
+          updateStockCount();
+          loadInventory();
+          resolve(db);
+        };
+        req.onerror = (e) => reject(e);
       });
-      document.getElementById('printModal').style.display = 'flex';
     }
 
-    function closePrintModal() {
-      document.getElementById('printModal').style.display = 'none';
+    // -------------------------------------------------------------
+    // 2. نظام التنبيهات الصوتية (Web Audio API)
+    // -------------------------------------------------------------
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
     }
 
-    // معالجة القارئ الخارجي (USB/Bluetooth)
-    const hwInput = document.getElementById('hwInput');
-    hwInput.addEventListener('keydown', (e) => {
+    function playBeep(type = 'success') {
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'success') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.15, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.12);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.12);
+        } else {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(240, ctx.currentTime);
+          osc.frequency.linearRampToValueAtTime(160, ctx.currentTime + 0.25);
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.25);
+        }
+      } catch (e) {
+        console.warn("تعذر تشغيل الصوت:", e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 3. نظام التوست (Custom Toast) بديل الـ Alert
+    // -------------------------------------------------------------
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      
+      const colors = {
+        success: 'bg-emerald-600 text-white shadow-emerald-500/20',
+        error: 'bg-rose-600 text-white shadow-rose-500/20',
+        info: 'bg-slate-900 text-white shadow-slate-900/20',
+      };
+
+      toast.className = `toast-anim pointer-events-auto px-4 py-2.5 rounded-2xl text-xs font-extrabold shadow-lg flex items-center gap-2 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // -------------------------------------------------------------
+    // 4. إدارة التبويبات
+    // -------------------------------------------------------------
+    function switchTab(tabId) {
+      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-brand-700', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+
+      const activeView = document.getElementById(`view-${tabId}`);
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeView) activeView.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.add('bg-white', 'text-brand-700', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-600');
+      }
+
+      // إذا غادر شاشة المسح نوقف الكاميرا لتوفير البطارية
+      if (tabId !== 'scan' && html5QrCode && isCameraActive) {
+        stopCamera();
+      }
+
+      if (tabId === 'scan') {
+        focusExternalScanner();
+      } else if (tabId === 'add') {
+        generateNewSku();
+      } else if (tabId === 'inventory') {
+        loadInventory();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 5. قارئ الكاميرا ومعالجة الصلاحيات
+    // -------------------------------------------------------------
+    let html5QrCode = null;
+    let isCameraActive = false;
+
+    async function toggleCamera() {
+      if (isCameraActive) {
+        stopCamera();
+      } else {
+        startCamera();
+      }
+    }
+
+    async function startCamera() {
+      const box = document.getElementById('cameraBox');
+      const btnText = document.getElementById('camBtnText');
+
+      try {
+        box.classList.remove('hidden');
+        if (!html5QrCode) {
+          html5QrCode = new Html5Qrcode("reader");
+        }
+
+        // إعداد تكوين المسح لسرعة التعرف
+        const config = {
+          fps: 15,
+          qrbox: { width: 220, height: 140 },
+          aspectRatio: 1.333333
+        };
+
+        // محاولة تشغيل الكاميرا الخلفية تلقائياً
+        await html5QrCode.start(
+          { facingMode: "environment" },
+          config,
+          onScanSuccess,
+          onScanFailure
+        );
+
+        isCameraActive = true;
+        btnText.textContent = "إيقاف الكاميرا";
+      } catch (err) {
+        console.error("Camera error:", err);
+        box.classList.add('hidden');
+        isCameraActive = false;
+        btnText.textContent = "فتح الكاميرا للمسح";
+        playBeep('error');
+        showToast("تأكد من فتح الرابط عبر HTTPS ومنح صلاحية الكاميرا", "error");
+      }
+    }
+
+    async function stopCamera() {
+      if (html5QrCode && isCameraActive) {
+        try {
+          await html5QrCode.stop();
+        } catch (e) {
+          console.warn("Stop camera warning:", e);
+        }
+        document.getElementById('cameraBox').classList.add('hidden');
+        document.getElementById('camBtnText').textContent = "فتح الكاميرا للمسح";
+        isCameraActive = false;
+      }
+    }
+
+    function onScanSuccess(decodedText) {
+      playBeep('success');
+      processBarcode(decodedText);
+      // إيقاف مؤقت لمنع التكرار المستمر
+      stopCamera();
+    }
+
+    function onScanFailure(error) {
+      // تفادي التكرار عند عدم العثور على كود في كل إطار
+    }
+
+    // -------------------------------------------------------------
+    // 6. التعامل مع ماسح الباركود الخارجي والبحث
+    // -------------------------------------------------------------
+    const scannerInput = document.getElementById('scannerInput');
+    scannerInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        const code = hwInput.value.trim();
+        const code = scannerInput.value.trim();
         if (code) {
-          lookupItem(code);
-          hwInput.value = '';
+          processBarcode(code);
+          scannerInput.value = '';
         }
       }
     });
 
-    function focusHwScanner() {
-      setTimeout(() => hwInput.focus(), 100);
+    function focusExternalScanner() {
+      setTimeout(() => {
+        scannerInput.focus();
+        showToast("حقل المسدس الخارجي جاهز للقراءة", "info");
+      }, 100);
     }
 
-    // معالجة كاميرا الهاتف
-    let html5QrCode = null;
-    let cameraRunning = false;
-    function toggleCamera() {
-      const readerDiv = document.getElementById('reader');
-      const btn = document.getElementById('toggleCamBtn');
-
-      if (!cameraRunning) {
-        readerDiv.style.display = 'block';
-        html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start(
-          { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 250, height: 150 } },
-          (decodedText) => {
-            playBeep(true);
-            lookupItem(decodedText);
-            toggleCamera(); // إيقاف الكاميرا بعد القراءة لتوفير الطاقة
-          },
-          (errorMessage) => {}
-        ).then(() => {
-          cameraRunning = true;
-          btn.textContent = "إيقاف الكاميرا";
-        }).catch(err => {
-          alert("تعذر الوصول للكاميرا، يرجى التأكد من تشغيل الصفحة عبر رابط HTTPS ومنح الإذن.");
-        });
-      } else {
-        html5QrCode.stop().then(() => {
-          readerDiv.style.display = 'none';
-          cameraRunning = false;
-          btn.textContent = "تشغيل الكاميرا";
-        });
+    function handleManualSearch() {
+      const code = scannerInput.value.trim();
+      if (code) {
+        processBarcode(code);
+        scannerInput.value = '';
       }
     }
 
-    // البحث عن القطعة وتحديث الواجهة
-    let currentScannedItem = null;
-    function lookupItem(sku) {
-      const tx = db.transaction("items", "readonly");
-      const req = tx.objectStore("items").get(sku);
+    let currentItem = null;
+    function processBarcode(code) {
+      if (!db) return;
+      const cleanSku = code.trim();
+      const tx = db.transaction("clothes", "readonly");
+      const store = tx.objectStore("clothes");
+      const req = store.get(cleanSku);
+
       req.onsuccess = (e) => {
         const item = e.target.result;
-        const resBox = document.getElementById('scanResult');
+        const resultCard = document.getElementById('scanResultCard');
+        resultCard.classList.remove('hidden');
+
         if (item) {
-          playBeep(true);
-          currentScannedItem = item;
-          resBox.style.display = 'block';
-          document.getElementById('resTitle').textContent = `${item.name} (${item.sku})`;
-          document.getElementById('resLoc').textContent = item.loc;
-          document.getElementById('resSize').textContent = item.size;
-          document.getElementById('resPrice').textContent = `${item.price}`;
-          
-          updateStatusUI(item.status);
+          playBeep('success');
+          currentItem = item;
+          document.getElementById('scannedSku').textContent = item.sku;
+          document.getElementById('scannedTitle').textContent = item.name;
+          document.getElementById('scannedLoc').textContent = item.loc;
+          document.getElementById('scannedSize').textContent = item.size;
+          document.getElementById('scannedPrice').textContent = `${item.price}`;
+          renderStatusInCard(item.status);
         } else {
-          playBeep(false);
-          resBox.style.display = 'block';
-          document.getElementById('resTitle').textContent = `الرمز: ${sku}`;
-          document.getElementById('resLoc').textContent = "غير مسجل";
-          document.getElementById('resSize').textContent = "-";
-          document.getElementById('resPrice').textContent = "-";
-          document.getElementById('resStatus').className = "badge badge-out";
-          document.getElementById('resStatus').textContent = "غير متوفر";
-          document.getElementById('resActionBtn').style.display = 'none';
+          playBeep('error');
+          currentItem = null;
+          document.getElementById('scannedSku').textContent = cleanSku;
+          document.getElementById('scannedTitle').textContent = "هذه القطعة غير مسجلة في المخزن!";
+          document.getElementById('scannedLoc').textContent = "-";
+          document.getElementById('scannedSize').textContent = "-";
+          document.getElementById('scannedPrice').textContent = "-";
+          
+          const badge = document.getElementById('scannedStatusBadge');
+          badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800";
+          badge.textContent = "غير موجودة";
+
+          const btn = document.getElementById('toggleStatusBtn');
+          btn.className = "hidden";
+          showToast(`الكود (${cleanSku}) غير موجود`, "error");
         }
       };
     }
 
-    function updateStatusUI(status) {
-      const statusBadge = document.getElementById('resStatus');
-      const actionBtn = document.getElementById('resActionBtn');
-      actionBtn.style.display = 'block';
+    function renderStatusInCard(status) {
+      const badge = document.getElementById('scannedStatusBadge');
+      const btn = document.getElementById('toggleStatusBtn');
+      btn.classList.remove('hidden');
 
       if (status === 'in_stock') {
-        statusBadge.className = 'badge badge-stock';
-        statusBadge.textContent = 'متوفر بالمخزن';
-        actionBtn.className = 'btn btn-primary';
-        actionBtn.textContent = 'إخراج للطلب والتوصيل';
+        badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800";
+        badge.textContent = "بالمخزن";
+
+        btn.className = "flex-1 py-3 px-4 rounded-xl font-bold text-xs text-white bg-brand-600 hover:bg-brand-700 shadow-md active:scale-95 transition-all";
+        btn.textContent = "تجهيز القطعة وصرفها للطلب";
       } else {
-        statusBadge.className = 'badge badge-out';
-        statusBadge.textContent = 'صادر للتوصيل';
-        actionBtn.className = 'btn btn-success';
-        actionBtn.textContent = 'إرجاع إلى الرف (مخزون)';
+        badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800";
+        badge.textContent = "صادر للتوصيل";
+
+        btn.className = "flex-1 py-3 px-4 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-700 shadow-md active:scale-95 transition-all";
+        btn.textContent = "إرجاع القطعة إلى الرف (مخزون)";
       }
     }
 
-    function toggleItemStatus() {
-      if (!currentScannedItem) return;
-      currentScannedItem.status = currentScannedItem.status === 'in_stock' ? 'dispatched' : 'in_stock';
-      
-      const tx = db.transaction("items", "readwrite");
-      tx.objectStore("items").put(currentScannedItem);
+    function toggleCurrentItemStatus() {
+      if (!currentItem) return;
+      const newStatus = currentItem.status === 'in_stock' ? 'dispatched' : 'in_stock';
+      currentItem.status = newStatus;
+
+      const tx = db.transaction("clothes", "readwrite");
+      tx.objectStore("clothes").put(currentItem);
       tx.oncomplete = () => {
-        playBeep(true);
-        updateStatusUI(currentScannedItem.status);
-        updateTotalCount();
+        playBeep('success');
+        renderStatusInCard(newStatus);
+        updateStockCount();
+        showToast(newStatus === 'in_stock' ? "أُعيدت القطعة للمخزن" : "تم صرف القطعة للتوصيل", "success");
       };
     }
 
-    // عرض القائمة وتحديث العداد
-    function renderItems() {
-      const container = document.getElementById('itemsContainer');
+    // -------------------------------------------------------------
+    // 7. إدخال قطعة جديدة وتوليد الباركود
+    // -------------------------------------------------------------
+    function generateNewSku() {
+      // توليد رقم عشوائي بالإنجليزية فريد
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      document.getElementById('formSku').value = `CLO-${randomNum}`;
+    }
+
+    function handleItemSave(e) {
+      e.preventDefault();
+      const sku = document.getElementById('formSku').value.trim();
+      const name = document.getElementById('formName').value.trim();
+      const size = document.getElementById('formSize').value;
+      const loc = document.getElementById('formLoc').value.trim().toUpperCase();
+      const price = document.getElementById('formPrice').value.trim();
+
+      const item = {
+        sku,
+        name,
+        size,
+        loc,
+        price,
+        status: 'in_stock',
+        createdAt: new Date().toISOString()
+      };
+
+      const tx = db.transaction("clothes", "readwrite");
+      tx.objectStore("clothes").put(item);
+      tx.oncomplete = () => {
+        playBeep('success');
+        showToast("تم حفظ الصنف بنجاح", "success");
+        updateStockCount();
+        openPrintModal(item);
+
+        // تجهيز النموذج للصنف التالي
+        document.getElementById('formName').value = '';
+        generateNewSku();
+      };
+    }
+
+    // -------------------------------------------------------------
+    // 8. معاينة وطباعة ملصق الباركود الحراري (JsBarcode)
+    // -------------------------------------------------------------
+    function openPrintModal(item) {
+      document.getElementById('prTitle').textContent = item.name;
+      document.getElementById('prLoc').textContent = `الرف: ${item.loc}`;
+      document.getElementById('prSize').textContent = `مقاس: ${item.size}`;
+      document.getElementById('prPrice').textContent = `السعر: ${item.price}`;
+
+      JsBarcode("#barcodeSvg", item.sku, {
+        format: "CODE128",
+        lineColor: "#000",
+        width: 1.8,
+        height: 38,
+        displayValue: true,
+        fontSize: 12,
+        font: "Cairo",
+        textMargin: 2
+      });
+
+      document.getElementById('printModal').classList.remove('hidden');
+    }
+
+    function printSingleItemFromScan() {
+      if (currentItem) {
+        openPrintModal(currentItem);
+      }
+    }
+
+    function triggerPrintNow() {
+      window.print();
+    }
+
+    function closePrintModal() {
+      document.getElementById('printModal').classList.add('hidden');
+    }
+
+    // -------------------------------------------------------------
+    // 9. إدارة شاشة المخزون والفلترة
+    // -------------------------------------------------------------
+    let allItems = [];
+    function loadInventory() {
+      if (!db) return;
+      const tx = db.transaction("clothes", "readonly");
+      const store = tx.objectStore("clothes");
+      const req = store.getAll();
+      req.onsuccess = (e) => {
+        allItems = e.target.result || [];
+        filterInventory();
+      };
+    }
+
+    function filterInventory() {
+      const q = (document.getElementById('invSearch').value || '').trim().toLowerCase();
+      const statusFilter = document.getElementById('invStatusFilter').value;
+
+      const filtered = allItems.filter(item => {
+        const matchesQuery = 
+          item.sku.toLowerCase().includes(q) ||
+          item.name.toLowerCase().includes(q) ||
+          item.loc.toLowerCase().includes(q);
+
+        const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+        return matchesQuery && matchesStatus;
+      });
+
+      renderInventoryCards(filtered);
+    }
+
+    function renderInventoryCards(items) {
+      const container = document.getElementById('inventoryList');
       container.innerHTML = '';
-      const tx = db.transaction("items", "readonly");
-      tx.objectStore("items").openCursor().onsuccess = (e) => {
-        const cursor = e.target.result;
-        if (cursor) {
-          const item = cursor.value;
-          const card = document.createElement('div');
-          card.className = 'item-card';
-          card.innerHTML = `
-            <div class="item-info">
-              <h4>${item.name}</h4>
-              <p>كود: <strong>${item.sku}</strong> | الرف: <strong>${item.loc}</strong> | مقاس: <strong>${item.size}</strong></p>
-              <p>السعر: <strong>${item.price}</strong></p>
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="glass-card rounded-2xl p-8 text-center border border-slate-200/80">
+            <p class="text-xs font-bold text-slate-400">لا توجد قطع مطابقة للبحث</p>
+          </div>
+        `;
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = "glass-card rounded-2xl p-3.5 border border-slate-200/80 shadow-sm flex items-center justify-between gap-3";
+        
+        const isStock = item.status === 'in_stock';
+        const statusBadge = isStock 
+          ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200/60">بالمخزن</span>`
+          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60">صادر</span>`;
+
+        card.innerHTML = `
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-[11px] font-mono font-extrabold text-brand-600 bg-brand-50 px-1.5 py-0.2 rounded">${item.sku}</span>
+              ${statusBadge}
             </div>
-            <div>
-              <span class="badge ${item.status === 'in_stock' ? 'badge-stock' : 'badge-out'}">
-                ${item.status === 'in_stock' ? 'بالمخزن' : 'صادر'}
-              </span>
+            <h4 class="text-xs font-extrabold text-slate-800 truncate">${item.name}</h4>
+            <div class="flex gap-3 text-[11px] text-slate-500 font-bold mt-1">
+              <span>الرف: <strong class="text-slate-700">${item.loc}</strong></span>
+              <span>مقاس: <strong class="text-slate-700">${item.size}</strong></span>
+              <span>السعر: <strong class="text-emerald-600">${item.price}</strong></span>
             </div>
-          `;
-          container.appendChild(card);
-          cursor.continue();
+          </div>
+          <div class="flex items-center gap-1">
+            <button onclick='openPrintModal(${JSON.stringify(item)})' class="p-2 text-slate-500 hover:text-brand-600 rounded-lg hover:bg-slate-100 transition-colors" title="طباعة باركود">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+              </svg>
+            </button>
+            <button onclick="deleteItemPrompt('${item.sku}')" class="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors" title="حذف">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function deleteItemPrompt(sku) {
+      const tx = db.transaction("clothes", "readwrite");
+      tx.objectStore("clothes").delete(sku);
+      tx.oncomplete = () => {
+        playBeep('success');
+        showToast(`تم حذف القطعة ${sku}`, "info");
+        updateStockCount();
+        loadInventory();
+      };
+    }
+
+    function updateStockCount() {
+      if (!db) return;
+      const tx = db.transaction("clothes", "readonly");
+      const store = tx.objectStore("clothes");
+      const req = store.getAll();
+      req.onsuccess = (e) => {
+        const items = e.target.result || [];
+        const inStock = items.filter(i => i.status === 'in_stock').length;
+        document.getElementById('headerStockCount').textContent = inStock;
+      };
+    }
+
+    // -------------------------------------------------------------
+    // 10. التصدير والاستيراد (Backup & Restore)
+    // -------------------------------------------------------------
+    function exportDataBackup() {
+      if (!db) return;
+      const tx = db.transaction("clothes", "readonly");
+      tx.objectStore("clothes").getAll().onsuccess = (e) => {
+        const data = e.target.result || [];
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `clothes_backup_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("تم تحميل ملف النسخة الاحتياطية", "success");
+      };
+    }
+
+    function importDataBackup(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const items = JSON.parse(event.target.result);
+          if (!Array.isArray(items)) throw new Error("الملف غير صالح");
+
+          const tx = db.transaction("clothes", "readwrite");
+          const store = tx.objectStore("clothes");
+          items.forEach(item => store.put(item));
+          tx.oncomplete = () => {
+            playBeep('success');
+            showToast(`تم استيراد ${items.length} قطعة بنجاح`, "success");
+            updateStockCount();
+            loadInventory();
+            e.target.value = '';
+          };
+        } catch (err) {
+          playBeep('error');
+          showToast("فشل استيراد الملف، تأكد من صحة التنسيق", "error");
         }
       };
+      reader.readAsText(file);
     }
 
-    function updateTotalCount() {
-      const tx = db.transaction("items", "readonly");
-      tx.objectStore("items").count().onsuccess = (e) => {
-        document.getElementById('totalCount').textContent = `${e.target.result} قطعة`;
+    function clearAllDataPrompt() {
+      const tx = db.transaction("clothes", "readwrite");
+      tx.objectStore("clothes").clear();
+      tx.oncomplete = () => {
+        playBeep('info');
+        showToast("تم تفريغ كافة البيانات", "info");
+        updateStockCount();
+        loadInventory();
       };
     }
+
+    // تشغيل النظام فور تحميل الصفحة
+    window.addEventListener('DOMContentLoaded', () => {
+      initDatabase();
+      generateNewSku();
+    });
   </script>
 </body>
 </html>
